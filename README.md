@@ -1,5 +1,18 @@
 # Proxmox VE by HTTP
 
+- [Proxmox VE by HTTP](#proxmox-ve-by-http)
+  - [Usage](#usage)
+  - [Macroses](#macroses)
+  - [Discoveries](#discoveries)
+    - [PVE API Cluster](#pve-api-cluster)
+      - [Cluster items](#cluster-items)
+      - [Cluster triggers](#cluster-triggers)
+      - [Cluster graphs](#cluster-graphs)
+    - [PVE API Resources - qemu](#pve-api-resources---qemu)
+      - [Qemu items](#qemu-items)
+      - [Qemu triggers](#qemu-triggers)
+      - [Qemu graphs](#qemu-graphs)
+
 Monitors PVE VMs and nodes by PVE HTTP API
 
 Tested on Zabbix 5.4.7
