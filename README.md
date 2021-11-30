@@ -19,7 +19,7 @@
 
 Monitors PVE VMs and nodes by PVE HTTP API
 
-Tested on Zabbix 5.4.7
+Tested on Zabbix 5.4.7 and PVE 7.1
 
 ## Usage
 
@@ -69,6 +69,7 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then c
 | PVE Node {#NODE} swap used        | Used SWAP size in bytes                                                                                | 1.68 Gb                      |
 | PVE Node {#NODE} swap used in %   | Used SWAP size in %                                                                                    | 80 %                         |
 | PVE Node {#NODE} uptime           | Node uptime in seconds                                                                                 | 12d 13h 30m                  |
+| PVE Node {#NODE} CPU usage in %   | Node CPU usage in %                                                                                    | 15.252 %                     |
 
 #### Cluster triggers
 
@@ -82,6 +83,8 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then c
 | PVE Node {#NODE} memory usage > 80%     | Warning     | Node RAM usage > 80%                              |
 | PVE Node {#NODE} rootfs usage > 90%     | High        | Node rootfs usage > 90%                           |
 | PVE Node {#NODE} rootfs usage > 80%     | Warning     | Node rootfs usage > 80%                           |
+| PVE Node {#NODE} rootfs usage > 80%     | Warning     | Node rootfs usage > 80%                           |
+| PVE Node {#NODE} CPU usage > 80%        | High        | Node CPU usage > 80%                              |
 
 #### Cluster graphs
 
@@ -90,6 +93,7 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then c
 | PVE Node {#NODE} memory | Shows free and total RAM of node         |
 | PVE Node {#NODE} rootfs | Shows free and total size in `/` of node |
 | PVE Node {#NODE} swap   | Shows free and total SWAP of node        |
+| PVE Node {#NODE} CPU    | CPU usage of node                        |
 
 ### PVE API Resources - qemu
 

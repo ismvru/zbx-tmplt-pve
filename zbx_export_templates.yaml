@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-11-30T10:39:40Z'
+  date: '2021-11-30T10:47:26Z'
   groups:
     -
       uuid: 846977d1dfed4968bc5f8bdb363285bc
@@ -18,7 +18,7 @@ zabbix_export:
         
         Monitors PVE VMs and nodes by PVE HTTP API
         
-        Tested on Zabbix 5.4.7
+        Tested on Zabbix 5.4.7 and PVE 7.1
         
         ## Usage
         
@@ -32,7 +32,7 @@ zabbix_export:
         You will see "Token ID" (example - `root@pam!monitoring`) and "Secret" (some UUID). Save "Secret" value, because you can't display it again!
         
         - Import template into Zabbix
-        - Attach template to any server you want, and fill macroses
+        - Attach template to any server you want, and fill macroses (described below)
       groups:
         -
           name: 'Templates/Operating systems'
@@ -47,6 +47,33 @@ zabbix_export:
           delay: 10m
           description: 'Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then creates items, triggers and graphs'
           item_prototypes:
+            -
+              uuid: ab87ce129a5f43ac8ea14e2b370e8f84
+              name: 'PVE Node {#NODE} CPU usage in %'
+              type: DEPENDENT
+              key: 'pve.nodes.cpu[{#NODE}]'
+              delay: '0'
+              value_type: FLOAT
+              units: '%'
+              description: 'Node CPU usage in %'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.cpu
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '100'
+              master_item:
+                key: 'pve.nodes[{#NODE}]'
+              trigger_prototypes:
+                -
+                  uuid: 7c8221b2263e4c3cbab6f67e1dc9c7a7
+                  expression: 'last(/Proxmox VE by HTTP/pve.nodes.cpu[{#NODE}])>80'
+                  name: 'PVE Node {#NODE} CPU usage > 80%'
+                  priority: HIGH
+                  description: 'Node CPU usage > 80%'
             -
               uuid: ebacb528631c44a8be1bc673d6ee210a
               name: 'PVE Node {#NODE} memory free'
@@ -356,6 +383,16 @@ zabbix_export:
                   name: Authorization
                   value: 'PVEAPIToken={$PVE_API_TOKEN}'
           graph_prototypes:
+            -
+              uuid: b1c9369c95be47908d71ea92aad59fc8
+              name: 'PVE Node {#NODE} CPU'
+              graph_items:
+                -
+                  sortorder: '1'
+                  color: 2774A4
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.nodes.cpu[{#NODE}]'
             -
               uuid: ff9575608e4a44079f7443c20e7387a8
               name: 'PVE Node {#NODE} memory'
