@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-11-30T07:03:03Z'
+  date: '2021-11-30T10:25:24Z'
   groups:
     -
       uuid: 846977d1dfed4968bc5f8bdb363285bc
@@ -13,7 +13,26 @@ zabbix_export:
       uuid: 0cdda41cd7fa4af6ace3dfa42ac68858
       template: 'Proxmox VE by HTTP'
       name: 'Proxmox VE by HTTP'
-      description: 'Proxmox VE Template - queries VM and NODE statuses by HTTP API'
+      description: |
+        # Proxmox VE by HTTP
+        
+        Monitors PVE VMs and nodes by PVE HTTP API
+        
+        Tested on Zabbix 5.4.7
+        
+        ## Usage
+        
+        - Go to PVE WEB UI -> Datacenter -> Api Tokens
+        - Click "Add"
+        - Select User (usualy - `root@pam`)
+        - Enter Token ID (for example - `monitoring`)
+        - **Uncheck "Privelege separation"**
+        - Click "Add"
+        
+        You will see "Token ID" (example - `root@pam!monitoring`) and "Secret" (some UUID). Save "Secret" value, because you can't display it again!
+        
+        - Import template into Zabbix
+        - Attach template to any server you want, and fill macroses
       groups:
         -
           name: 'Templates/Operating systems'
@@ -26,7 +45,7 @@ zabbix_export:
           type: HTTP_AGENT
           key: pve.cluster
           delay: 10m
-          description: 'PVE - Status of cluster nodes'
+          description: 'Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then creates items, triggers and graphs'
           item_prototypes:
             -
               uuid: ebacb528631c44a8be1bc673d6ee210a
@@ -35,6 +54,7 @@ zabbix_export:
               key: 'pve.nodes.memory.free[{#NODE}]'
               delay: '0'
               units: b
+              description: 'Free RAM in bytes'
               preprocessing:
                 -
                   type: JSONPATH
@@ -49,6 +69,7 @@ zabbix_export:
               key: 'pve.nodes.memory.total[{#NODE}]'
               delay: '0'
               units: b
+              description: 'Total RAM size in bytes'
               preprocessing:
                 -
                   type: JSONPATH
@@ -63,6 +84,7 @@ zabbix_export:
               key: 'pve.nodes.memory.used[{#NODE}]'
               delay: '0'
               units: b
+              description: 'Used RAM in bytes'
               preprocessing:
                 -
                   type: JSONPATH
@@ -78,6 +100,7 @@ zabbix_export:
               delay: '0'
               trends: '0'
               value_type: TEXT
+              description: 'PVE Version on node'
               preprocessing:
                 -
                   type: JSONPATH
@@ -91,6 +114,7 @@ zabbix_export:
                   expression: 'change(/Proxmox VE by HTTP/pve.nodes.pveversion[{#NODE}])>0'
                   name: 'PVE Node {#NODE} pve version changed'
                   priority: INFO
+                  description: 'pveversion was changed since last check'
                   manual_close: 'YES'
             -
               uuid: 887c6dea4edb42b79934a20e37b8dbbe
@@ -99,6 +123,7 @@ zabbix_export:
               key: 'pve.nodes.rootfs.avail[{#NODE}]'
               delay: '0'
               units: b
+              description: 'Available size in `/` in bytes'
               preprocessing:
                 -
                   type: JSONPATH
@@ -113,6 +138,7 @@ zabbix_export:
               key: 'pve.nodes.rootfs.free[{#NODE}]'
               delay: '0'
               units: b
+              description: 'Free size in `/` in bytes'
               preprocessing:
                 -
                   type: JSONPATH
@@ -127,6 +153,7 @@ zabbix_export:
               key: 'pve.nodes.rootfs.total[{#NODE}]'
               delay: '0'
               units: b
+              description: 'Total size in `/` in bytes'
               preprocessing:
                 -
                   type: JSONPATH
@@ -141,6 +168,7 @@ zabbix_export:
               key: 'pve.nodes.rootfs.used[{#NODE}]'
               delay: '0'
               units: b
+              description: 'Used size in `/` in bytes'
               preprocessing:
                 -
                   type: JSONPATH
@@ -155,6 +183,7 @@ zabbix_export:
               key: 'pve.nodes.swap.free[{#NODE}]'
               delay: '0'
               units: b
+              description: 'Free SWAP size in bytes'
               preprocessing:
                 -
                   type: JSONPATH
@@ -169,6 +198,7 @@ zabbix_export:
               key: 'pve.nodes.swap.total[{#NODE}]'
               delay: '0'
               units: b
+              description: 'Total SWAP size in bytes'
               preprocessing:
                 -
                   type: JSONPATH
@@ -183,6 +213,7 @@ zabbix_export:
               key: 'pve.nodes.swap.used[{#NODE}]'
               delay: '0'
               units: b
+              description: 'Used SWAP size in bytes'
               preprocessing:
                 -
                   type: JSONPATH
@@ -197,6 +228,7 @@ zabbix_export:
               key: 'pve.nodes.uptime[{#NODE}]'
               delay: '0'
               units: s
+              description: 'Node uptime in seconds'
               preprocessing:
                 -
                   type: JSONPATH
@@ -210,6 +242,7 @@ zabbix_export:
                   expression: 'last(/Proxmox VE by HTTP/pve.nodes.uptime[{#NODE}])<600'
                   name: 'PVE Node {#NODE} uptime lesser than 10m'
                   priority: WARNING
+                  description: 'Node has been restarted and node uptime is < 600s'
                   manual_close: 'YES'
             -
               uuid: 7d3677c5173c4a95b45a1de691f15edf
@@ -219,7 +252,7 @@ zabbix_export:
               history: 1d
               trends: '0'
               value_type: TEXT
-              description: 'PVE Node status'
+              description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/status/` HTTP Query'
               preprocessing:
                 -
                   type: JSONPATH
@@ -311,7 +344,7 @@ zabbix_export:
                 macro: '{#TYPE}'
                 value: ^qemu$
                 formulaid: A
-          description: 'PVE - Status of cluster resources - qemu'
+          description: 'Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs'
           item_prototypes:
             -
               uuid: 004ca8fbe58e45d781e27262ea92f449
@@ -321,6 +354,7 @@ zabbix_export:
               delay: '0'
               value_type: FLOAT
               units: '%'
+              description: 'VM CPU Usage in %'
               preprocessing:
                 -
                   type: JSONPATH
@@ -338,6 +372,7 @@ zabbix_export:
                   expression: 'last(/Proxmox VE by HTTP/pve.vm.cpu[{#VMID}])>80'
                   name: 'PVE Vm {#VMID} - {#NAME} high CPU usage'
                   priority: WARNING
+                  description: 'VM CPU usage > 80%'
             -
               uuid: 31aeb70e1522428bad9a30a512bd7eee
               name: 'PVE Vm {#VMID} - {#NAME} status'
@@ -346,6 +381,7 @@ zabbix_export:
               delay: '0'
               trends: '0'
               value_type: TEXT
+              description: 'String, current VM state'
               preprocessing:
                 -
                   type: JSONPATH
@@ -359,6 +395,7 @@ zabbix_export:
                   expression: 'find(/Proxmox VE by HTTP/pve.vm.status[{#VMID}],,,"running")=0'
                   name: 'PVE Vm {#VMID} - {#NAME} is not running'
                   priority: WARNING
+                  description: 'VM state is not "running"'
                   manual_close: 'YES'
             -
               uuid: a32890cceec246b78668057d4368d594
@@ -367,6 +404,7 @@ zabbix_export:
               key: 'pve.vm.uptime[{#VMID}]'
               delay: '0'
               units: s
+              description: 'VM uptime in seconds'
               preprocessing:
                 -
                   type: JSONPATH
@@ -380,6 +418,7 @@ zabbix_export:
                   expression: 'last(/Proxmox VE by HTTP/pve.vm.uptime[{#VMID}])<600'
                   name: 'PVE Vm {#VMID} - {#NAME} uptime < 10m'
                   priority: WARNING
+                  description: 'VM uptime is < 600s'
                   manual_close: 'YES'
                   dependencies:
                     -
@@ -392,6 +431,7 @@ zabbix_export:
               key: 'pve.vm[{#VMID}]'
               trends: '0'
               value_type: TEXT
+              description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/qemu/{#VMID}/status/current` HTTP Query'
               preprocessing:
                 -
                   type: JSONPATH
@@ -437,15 +477,215 @@ zabbix_export:
               type: JSONPATH
               parameters:
                 - $.data
+        -
+          uuid: 6d58027a895240a0b95759822b899949
+          name: 'PVE API Resources - storage'
+          type: HTTP_AGENT
+          key: pve.cluster.resources.storage
+          delay: 10m
+          filter:
+            conditions:
+              -
+                macro: '{#TYPE}'
+                value: ^storage$
+                formulaid: A
+          description: 'Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs'
+          item_prototypes:
+            -
+              uuid: d50ea430c1134107b23aa67e2363fba0
+              name: 'PVE Storage {#NODE} - {#NAME} active'
+              type: DEPENDENT
+              key: 'pve.storage.active[{#NODE}, {#NAME}]'
+              delay: '0'
+              description: 'Storage is active if value is 1'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.active
+              master_item:
+                key: 'pve.storage[{#NODE}, {#NAME}]'
+            -
+              uuid: 9b72f1264f934f0f897927327cb839e6
+              name: 'PVE Storage {#NODE} - {#NAME} available'
+              type: DEPENDENT
+              key: 'pve.storage.available[{#NODE}, {#NAME}]'
+              delay: '0'
+              units: b
+              description: 'Available size in storage in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.avail
+              master_item:
+                key: 'pve.storage[{#NODE}, {#NAME}]'
+              trigger_prototypes:
+                -
+                  uuid: cd50fb14b6374ef4810b1f7df9d3ac04
+                  expression: 'last(/Proxmox VE by HTTP/pve.storage.available[{#NODE}, {#NAME}])=0'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Proxmox VE by HTTP/pve.storage.available[{#NODE}, {#NAME}])=1'
+                  name: 'PVE Storage {#NODE} - {#NAME} unavailable'
+                  priority: HIGH
+            -
+              uuid: 4b06b5380cf246a8b21697eca4d22acd
+              name: 'PVE Storage {#NODE} - {#NAME} enabled'
+              type: DEPENDENT
+              key: 'pve.storage.enabled[{#NODE}, {#NAME}]'
+              delay: '0'
+              description: 'Storage is enabled if value is 1'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.enabled
+              master_item:
+                key: 'pve.storage[{#NODE}, {#NAME}]'
+              trigger_prototypes:
+                -
+                  uuid: 79c2884dc3034c61ad183e0707651648
+                  expression: 'last(/Proxmox VE by HTTP/pve.storage.enabled[{#NODE}, {#NAME}])=0'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Proxmox VE by HTTP/pve.storage.enabled[{#NODE}, {#NAME}])=1'
+                  name: 'PVE Storage {#NODE} - {#NAME} disabled'
+                  priority: WARNING
+                  description: 'Storage is disabled'
+                  manual_close: 'YES'
+            -
+              uuid: c04a6ebd80d64fe59a8c205a724eaf70
+              name: 'PVE Storage {#NODE} - {#NAME} used in %'
+              type: CALCULATED
+              key: 'pve.storage.pused[{#NODE}, {#NAME}]'
+              value_type: FLOAT
+              units: '%'
+              params: 'last(//pve.storage.used[{#NODE}, {#NAME}])/last(//pve.storage.total[{#NODE}, {#NAME}])'
+              description: 'Used storage size in %'
+              preprocessing:
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '100'
+              trigger_prototypes:
+                -
+                  uuid: 6a62cb31f3df4c07b2bb3aadb43fcf06
+                  expression: 'last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])>80'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])<80'
+                  name: 'PVE Storage {#NODE} - {#NAME} used > 80 %'
+                  priority: WARNING
+                  description: 'Storage usage > 80%'
+                  manual_close: 'YES'
+                  dependencies:
+                    -
+                      name: 'PVE Storage {#NODE} - {#NAME} used > 90 %'
+                      expression: 'last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])>90'
+                      recovery_expression: 'last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])<90'
+                -
+                  uuid: abd45535c7304684b7e153fcf6e9bad6
+                  expression: 'last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])>90'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])<90'
+                  name: 'PVE Storage {#NODE} - {#NAME} used > 90 %'
+                  priority: HIGH
+                  description: 'Storage usage > 80%'
+                  manual_close: 'YES'
+            -
+              uuid: d900df10a9c64a2fb84efe98e9d5d6d1
+              name: 'PVE Storage {#NODE} - {#NAME} size'
+              type: DEPENDENT
+              key: 'pve.storage.total[{#NODE}, {#NAME}]'
+              delay: '0'
+              units: b
+              description: 'Total size of storage in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.total
+              master_item:
+                key: 'pve.storage[{#NODE}, {#NAME}]'
+            -
+              uuid: eab1a5de26ac41a5a921995ba13dc0cf
+              name: 'PVE Storage {#NODE} - {#NAME} used'
+              type: DEPENDENT
+              key: 'pve.storage.used[{#NODE}, {#NAME}]'
+              delay: '0'
+              units: b
+              description: 'Used storage size in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.used
+              master_item:
+                key: 'pve.storage[{#NODE}, {#NAME}]'
+            -
+              uuid: cf62650dfcc9437ea46453691f6e4cce
+              name: 'PVE Storage {#NODE} - {#NAME}'
+              type: HTTP_AGENT
+              key: 'pve.storage[{#NODE}, {#NAME}]'
+              trends: '0'
+              value_type: TEXT
+              description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/storage/{#NAME}/status` HTTP Query'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.data
+              timeout: 10s
+              url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/storage/{#NAME}/status'
+              headers:
+                -
+                  name: Authorization
+                  value: 'PVEAPIToken={$PVE_API_TOKEN}'
+          graph_prototypes:
+            -
+              uuid: a456bad10ba149cfba855ceea74131eb
+              name: 'PVE Storage {#NODE} - {#NAME} usage'
+              graph_items:
+                -
+                  sortorder: '1'
+                  color: 199C0D
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.storage.total[{#NODE}, {#NAME}]'
+                -
+                  sortorder: '2'
+                  drawtype: FILLED_REGION
+                  color: F63100
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.storage.used[{#NODE}, {#NAME}]'
+          url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/'
+          headers:
+            -
+              name: Authorization
+              value: 'PVEAPIToken={$PVE_API_TOKEN}'
+          lld_macro_paths:
+            -
+              lld_macro: '{#NAME}'
+              path: '$.[''storage'']'
+            -
+              lld_macro: '{#NODE}'
+              path: '$.[''node'']'
+            -
+              lld_macro: '{#TYPE}'
+              path: '$.[''type'']'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.data
       macros:
         -
           macro: '{$PVE_API_HOST}'
           value: '{HOST.NAME}'
-          description: 'PVE web address. Default: {HOST.NAME}'
+          description: 'PVE web UI address. Default: {HOST.NAME}'
         -
           macro: '{$PVE_API_PORT}'
           value: '8006'
-          description: 'PVE web UI port. Default: 8006'
+          description: 'PVE web UI Port. Default: 8006'
         -
           macro: '{$PVE_API_TOKEN}'
           type: SECRET_TEXT

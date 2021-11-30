@@ -12,6 +12,10 @@
       - [Qemu items](#qemu-items)
       - [Qemu triggers](#qemu-triggers)
       - [Qemu graphs](#qemu-graphs)
+    - [PVE API Resources - storage](#pve-api-resources---storage)
+      - [Storage items](#storage-items)
+      - [Storage triggers](#storage-triggers)
+      - [Storage graphs](#storage-graphs)
 
 Monitors PVE VMs and nodes by PVE HTTP API
 
@@ -104,3 +108,34 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and 
 | Graph                              | Description     |
 | ---------------------------------- | --------------- |
 | PVE Vm {#VMID} - {#NAME} CPU usage | CPU usage of VM |
+
+### PVE API Resources - storage
+
+Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs
+
+#### Storage items
+
+|Item|Description|Example|
+|----|-----------|-------|
+|PVE Storage {#NODE} - {#NAME}|JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/storage/{#NAME}/status` HTTP Query||
+|PVE Storage {#NODE} - {#NAME} active|Storage is active if value is 1|1|
+|PVE Storage {#NODE} - {#NAME} enabled|Storage is enabled if value is 1|1|
+|PVE Storage {#NODE} - {#NAME} available|Available size in storage in bytes|10 Gb|
+|PVE Storage {#NODE} - {#NAME} size|Total size of storage in bytes|100 Gb|
+|PVE Storage {#NODE} - {#NAME} used|Used storage size in bytes|90 Gb|
+|PVE Storage {#NODE} - {#NAME} used in %|Used storage size in %|90 %|
+
+#### Storage triggers
+
+|Trigger|Severity|Description|
+|---------------------------------------|--------|-------------------------|
+|PVE Storage {#NODE} - {#NAME} unavailable|High|Storage is unavailable|
+|PVE Storage {#NODE} - {#NAME} disabled|Warning|Storage is disabled|
+|PVE Storage {#NODE} - {#NAME} used > 80 %|Warning|Storage usage > 80%|
+|PVE Storage {#NODE} - {#NAME} used > 90 %|High|Storage usage > 90%|
+
+#### Storage graphs
+
+|Graph|Description|
+|----------------------------------|---------------|
+|PVE Storage {#NODE} - {#NAME} usage|Storage usage|

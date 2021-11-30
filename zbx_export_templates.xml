@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.4</version>
-    <date>2021-11-30T08:02:19Z</date>
+    <date>2021-11-30T10:25:29Z</date>
     <groups>
         <group>
             <uuid>846977d1dfed4968bc5f8bdb363285bc</uuid>
@@ -17,7 +17,25 @@
             <uuid>0cdda41cd7fa4af6ace3dfa42ac68858</uuid>
             <template>Proxmox VE by HTTP</template>
             <name>Proxmox VE by HTTP</name>
-            <description>Proxmox VE Template - queries VM and NODE statuses by HTTP API</description>
+            <description># Proxmox VE by HTTP
+
+Monitors PVE VMs and nodes by PVE HTTP API
+
+Tested on Zabbix 5.4.7
+
+## Usage
+
+- Go to PVE WEB UI -&gt; Datacenter -&gt; Api Tokens
+- Click &quot;Add&quot;
+- Select User (usualy - `root@pam`)
+- Enter Token ID (for example - `monitoring`)
+- **Uncheck &quot;Privelege separation&quot;**
+- Click &quot;Add&quot;
+
+You will see &quot;Token ID&quot; (example - `root@pam!monitoring`) and &quot;Secret&quot; (some UUID). Save &quot;Secret&quot; value, because you can't display it again!
+
+- Import template into Zabbix
+- Attach template to any server you want, and fill macroses</description>
             <groups>
                 <group>
                     <name>Templates/Operating systems</name>
@@ -33,7 +51,7 @@
                     <type>HTTP_AGENT</type>
                     <key>pve.cluster</key>
                     <delay>10m</delay>
-                    <description>PVE - Status of cluster nodes</description>
+                    <description>Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then creates items, triggers and graphs</description>
                     <item_prototypes>
                         <item_prototype>
                             <uuid>ebacb528631c44a8be1bc673d6ee210a</uuid>
@@ -42,6 +60,7 @@
                             <key>pve.nodes.memory.free[{#NODE}]</key>
                             <delay>0</delay>
                             <units>b</units>
+                            <description>Free RAM in bytes</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -61,6 +80,7 @@
                             <key>pve.nodes.memory.total[{#NODE}]</key>
                             <delay>0</delay>
                             <units>b</units>
+                            <description>Total RAM size in bytes</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -80,6 +100,7 @@
                             <key>pve.nodes.memory.used[{#NODE}]</key>
                             <delay>0</delay>
                             <units>b</units>
+                            <description>Used RAM in bytes</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -100,6 +121,7 @@
                             <delay>0</delay>
                             <trends>0</trends>
                             <value_type>TEXT</value_type>
+                            <description>PVE Version on node</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -117,6 +139,7 @@
                                     <expression>change(/Proxmox VE by HTTP/pve.nodes.pveversion[{#NODE}])&gt;0</expression>
                                     <name>PVE Node {#NODE} pve version changed</name>
                                     <priority>INFO</priority>
+                                    <description>pveversion was changed since last check</description>
                                     <manual_close>YES</manual_close>
                                 </trigger_prototype>
                             </trigger_prototypes>
@@ -128,6 +151,7 @@
                             <key>pve.nodes.rootfs.avail[{#NODE}]</key>
                             <delay>0</delay>
                             <units>b</units>
+                            <description>Available size in `/` in bytes</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -147,6 +171,7 @@
                             <key>pve.nodes.rootfs.free[{#NODE}]</key>
                             <delay>0</delay>
                             <units>b</units>
+                            <description>Free size in `/` in bytes</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -166,6 +191,7 @@
                             <key>pve.nodes.rootfs.total[{#NODE}]</key>
                             <delay>0</delay>
                             <units>b</units>
+                            <description>Total size in `/` in bytes</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -185,6 +211,7 @@
                             <key>pve.nodes.rootfs.used[{#NODE}]</key>
                             <delay>0</delay>
                             <units>b</units>
+                            <description>Used size in `/` in bytes</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -204,6 +231,7 @@
                             <key>pve.nodes.swap.free[{#NODE}]</key>
                             <delay>0</delay>
                             <units>b</units>
+                            <description>Free SWAP size in bytes</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -223,6 +251,7 @@
                             <key>pve.nodes.swap.total[{#NODE}]</key>
                             <delay>0</delay>
                             <units>b</units>
+                            <description>Total SWAP size in bytes</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -242,6 +271,7 @@
                             <key>pve.nodes.swap.used[{#NODE}]</key>
                             <delay>0</delay>
                             <units>b</units>
+                            <description>Used SWAP size in bytes</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -261,6 +291,7 @@
                             <key>pve.nodes.uptime[{#NODE}]</key>
                             <delay>0</delay>
                             <units>s</units>
+                            <description>Node uptime in seconds</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -278,6 +309,7 @@
                                     <expression>last(/Proxmox VE by HTTP/pve.nodes.uptime[{#NODE}])&lt;600</expression>
                                     <name>PVE Node {#NODE} uptime lesser than 10m</name>
                                     <priority>WARNING</priority>
+                                    <description>Node has been restarted and node uptime is &lt; 600s</description>
                                     <manual_close>YES</manual_close>
                                 </trigger_prototype>
                             </trigger_prototypes>
@@ -290,7 +322,7 @@
                             <history>1d</history>
                             <trends>0</trends>
                             <value_type>TEXT</value_type>
-                            <description>PVE Node status</description>
+                            <description>JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/status/` HTTP Query</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -420,7 +452,7 @@
                             </condition>
                         </conditions>
                     </filter>
-                    <description>PVE - Status of cluster resources - qemu</description>
+                    <description>Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs</description>
                     <item_prototypes>
                         <item_prototype>
                             <uuid>004ca8fbe58e45d781e27262ea92f449</uuid>
@@ -430,6 +462,7 @@
                             <delay>0</delay>
                             <value_type>FLOAT</value_type>
                             <units>%</units>
+                            <description>VM CPU Usage in %</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -453,6 +486,7 @@
                                     <expression>last(/Proxmox VE by HTTP/pve.vm.cpu[{#VMID}])&gt;80</expression>
                                     <name>PVE Vm {#VMID} - {#NAME} high CPU usage</name>
                                     <priority>WARNING</priority>
+                                    <description>VM CPU usage &gt; 80%</description>
                                 </trigger_prototype>
                             </trigger_prototypes>
                         </item_prototype>
@@ -464,6 +498,7 @@
                             <delay>0</delay>
                             <trends>0</trends>
                             <value_type>TEXT</value_type>
+                            <description>String, current VM state</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -481,6 +516,7 @@
                                     <expression>find(/Proxmox VE by HTTP/pve.vm.status[{#VMID}],,,&quot;running&quot;)=0</expression>
                                     <name>PVE Vm {#VMID} - {#NAME} is not running</name>
                                     <priority>WARNING</priority>
+                                    <description>VM state is not &quot;running&quot;</description>
                                     <manual_close>YES</manual_close>
                                 </trigger_prototype>
                             </trigger_prototypes>
@@ -492,6 +528,7 @@
                             <key>pve.vm.uptime[{#VMID}]</key>
                             <delay>0</delay>
                             <units>s</units>
+                            <description>VM uptime in seconds</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -509,6 +546,7 @@
                                     <expression>last(/Proxmox VE by HTTP/pve.vm.uptime[{#VMID}])&lt;600</expression>
                                     <name>PVE Vm {#VMID} - {#NAME} uptime &lt; 10m</name>
                                     <priority>WARNING</priority>
+                                    <description>VM uptime is &lt; 600s</description>
                                     <manual_close>YES</manual_close>
                                     <dependencies>
                                         <dependency>
@@ -526,6 +564,7 @@
                             <key>pve.vm[{#VMID}]</key>
                             <trends>0</trends>
                             <value_type>TEXT</value_type>
+                            <description>JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/qemu/{#VMID}/status/current` HTTP Query</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -594,17 +633,282 @@
                         </step>
                     </preprocessing>
                 </discovery_rule>
+                <discovery_rule>
+                    <uuid>6d58027a895240a0b95759822b899949</uuid>
+                    <name>PVE API Resources - storage</name>
+                    <type>HTTP_AGENT</type>
+                    <key>pve.cluster.resources.storage</key>
+                    <delay>10m</delay>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#TYPE}</macro>
+                                <value>^storage$</value>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <description>Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <uuid>d50ea430c1134107b23aa67e2363fba0</uuid>
+                            <name>PVE Storage {#NODE} - {#NAME} active</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.storage.active[{#NODE}, {#NAME}]</key>
+                            <delay>0</delay>
+                            <description>Storage is active if value is 1</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.active</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.storage[{#NODE}, {#NAME}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>9b72f1264f934f0f897927327cb839e6</uuid>
+                            <name>PVE Storage {#NODE} - {#NAME} available</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.storage.available[{#NODE}, {#NAME}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Available size in storage in bytes</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.avail</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.storage[{#NODE}, {#NAME}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <uuid>cd50fb14b6374ef4810b1f7df9d3ac04</uuid>
+                                    <expression>last(/Proxmox VE by HTTP/pve.storage.available[{#NODE}, {#NAME}])=0</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>last(/Proxmox VE by HTTP/pve.storage.available[{#NODE}, {#NAME}])=1</recovery_expression>
+                                    <name>PVE Storage {#NODE} - {#NAME} unavailable</name>
+                                    <priority>HIGH</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>4b06b5380cf246a8b21697eca4d22acd</uuid>
+                            <name>PVE Storage {#NODE} - {#NAME} enabled</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.storage.enabled[{#NODE}, {#NAME}]</key>
+                            <delay>0</delay>
+                            <description>Storage is enabled if value is 1</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.enabled</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.storage[{#NODE}, {#NAME}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <uuid>79c2884dc3034c61ad183e0707651648</uuid>
+                                    <expression>last(/Proxmox VE by HTTP/pve.storage.enabled[{#NODE}, {#NAME}])=0</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>last(/Proxmox VE by HTTP/pve.storage.enabled[{#NODE}, {#NAME}])=1</recovery_expression>
+                                    <name>PVE Storage {#NODE} - {#NAME} disabled</name>
+                                    <priority>WARNING</priority>
+                                    <description>Storage is disabled</description>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>c04a6ebd80d64fe59a8c205a724eaf70</uuid>
+                            <name>PVE Storage {#NODE} - {#NAME} used in %</name>
+                            <type>CALCULATED</type>
+                            <key>pve.storage.pused[{#NODE}, {#NAME}]</key>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <params>last(//pve.storage.used[{#NODE}, {#NAME}])/last(//pve.storage.total[{#NODE}, {#NAME}])</params>
+                            <description>Used storage size in %</description>
+                            <preprocessing>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <parameters>
+                                        <parameter>100</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <uuid>6a62cb31f3df4c07b2bb3aadb43fcf06</uuid>
+                                    <expression>last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])&gt;80</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])&lt;80</recovery_expression>
+                                    <name>PVE Storage {#NODE} - {#NAME} used &gt; 80 %</name>
+                                    <priority>WARNING</priority>
+                                    <description>Storage usage &gt; 80%</description>
+                                    <manual_close>YES</manual_close>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>PVE Storage {#NODE} - {#NAME} used &gt; 90 %</name>
+                                            <expression>last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])&gt;90</expression>
+                                            <recovery_expression>last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])&lt;90</recovery_expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <uuid>abd45535c7304684b7e153fcf6e9bad6</uuid>
+                                    <expression>last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])&gt;90</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])&lt;90</recovery_expression>
+                                    <name>PVE Storage {#NODE} - {#NAME} used &gt; 90 %</name>
+                                    <priority>HIGH</priority>
+                                    <description>Storage usage &gt; 80%</description>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>d900df10a9c64a2fb84efe98e9d5d6d1</uuid>
+                            <name>PVE Storage {#NODE} - {#NAME} size</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.storage.total[{#NODE}, {#NAME}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Total size of storage in bytes</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.total</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.storage[{#NODE}, {#NAME}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>eab1a5de26ac41a5a921995ba13dc0cf</uuid>
+                            <name>PVE Storage {#NODE} - {#NAME} used</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.storage.used[{#NODE}, {#NAME}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Used storage size in bytes</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.used</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.storage[{#NODE}, {#NAME}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>cf62650dfcc9437ea46453691f6e4cce</uuid>
+                            <name>PVE Storage {#NODE} - {#NAME}</name>
+                            <type>HTTP_AGENT</type>
+                            <key>pve.storage[{#NODE}, {#NAME}]</key>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <description>JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/storage/{#NAME}/status` HTTP Query</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.data</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <timeout>10s</timeout>
+                            <url>https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/storage/{#NAME}/status</url>
+                            <headers>
+                                <header>
+                                    <name>Authorization</name>
+                                    <value>PVEAPIToken={$PVE_API_TOKEN}</value>
+                                </header>
+                            </headers>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <uuid>a456bad10ba149cfba855ceea74131eb</uuid>
+                            <name>PVE Storage {#NODE} - {#NAME} usage</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>199C0D</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.storage.total[{#NODE}, {#NAME}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>FILLED_REGION</drawtype>
+                                    <color>F63100</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.storage.used[{#NODE}, {#NAME}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                    <url>https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/</url>
+                    <headers>
+                        <header>
+                            <name>Authorization</name>
+                            <value>PVEAPIToken={$PVE_API_TOKEN}</value>
+                        </header>
+                    </headers>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#NAME}</lld_macro>
+                            <path>$.['storage']</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#NODE}</lld_macro>
+                            <path>$.['node']</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#TYPE}</lld_macro>
+                            <path>$.['type']</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <parameters>
+                                <parameter>$.data</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                </discovery_rule>
             </discovery_rules>
             <macros>
                 <macro>
                     <macro>{$PVE_API_HOST}</macro>
                     <value>{HOST.NAME}</value>
-                    <description>PVE web address. Default: {HOST.NAME}</description>
+                    <description>PVE web UI address. Default: {HOST.NAME}</description>
                 </macro>
                 <macro>
                     <macro>{$PVE_API_PORT}</macro>
                     <value>8006</value>
-                    <description>PVE web UI port. Default: 8006</description>
+                    <description>PVE web UI Port. Default: 8006</description>
                 </macro>
                 <macro>
                     <macro>{$PVE_API_TOKEN}</macro>
