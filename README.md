@@ -57,14 +57,17 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then c
 | PVE Node {#NODE} memory free      | Free RAM in bytes                                                                                      | 30.24 Gb                     |
 | PVE Node {#NODE} memory size      | Total RAM size in bytes                                                                                | 64 Gb                        |
 | PVE Node {#NODE} memory used      | Used RAM in bytes                                                                                      | 33.76 Gb                     |
+| PVE Node {#NODE} memory used in % | Used RAM in %                                                                                          | 15 %                         |
 | PVE Node {#NODE} pveversion       | PVE Version on node                                                                                    | `pve-manager/7.1-5/6fe299a0` |
 | PVE Node {#NODE} rootfs available | Available size in `/` in bytes                                                                         | 13.46 Gb                     |
 | PVE Node {#NODE} rootfs free      | Free size in `/` in bytes                                                                              | 14.55 Gb                     |
 | PVE Node {#NODE} rootfs size      | Total size in `/` in bytes                                                                             | 20.99 Gb                     |
 | PVE Node {#NODE} rootfs used      | Used size in `/` in bytes                                                                              | 6.43 Gb                      |
+| PVE Node {#NODE} rootfs used in % | Used size in `/` in %                                                                                  | 80 %                         |
 | PVE Node {#NODE} swap free        | Free SWAP size in bytes                                                                                | 462.49 Mb                    |
 | PVE Node {#NODE} swap size        | Total SWAP size in bytes                                                                               | 2.15 Gb                      |
 | PVE Node {#NODE} swap used        | Used SWAP size in bytes                                                                                | 1.68 Gb                      |
+| PVE Node {#NODE} swap used in %   | Used SWAP size in %                                                                                    | 80 %                         |
 | PVE Node {#NODE} uptime           | Node uptime in seconds                                                                                 | 12d 13h 30m                  |
 
 #### Cluster triggers
@@ -73,6 +76,12 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then c
 | --------------------------------------- | ----------- | ------------------------------------------------- |
 | PVE Node {#NODE} pve version changed    | Information | pveversion was changed since last check           |
 | PVE Node {#NODE} uptime lesser than 10m | Warning     | Node has been restarted and node uptime is < 600s |
+| PVE Node {#NODE} swap usage > 90%       | High        | Node SWAP usage > 90%                             |
+| PVE Node {#NODE} swap usage > 80%       | Warning     | Node SWAP usage > 80%                             |
+| PVE Node {#NODE} memory usage > 90%     | High        | Node RAM usage > 90%                              |
+| PVE Node {#NODE} memory usage > 80%     | Warning     | Node RAM usage > 80%                              |
+| PVE Node {#NODE} rootfs usage > 90%     | High        | Node rootfs usage > 90%                           |
+| PVE Node {#NODE} rootfs usage > 80%     | Warning     | Node rootfs usage > 80%                           |
 
 #### Cluster graphs
 
@@ -115,27 +124,27 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and 
 
 #### Storage items
 
-|Item|Description|Example|
-|----|-----------|-------|
-|PVE Storage {#NODE} - {#NAME}|JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/storage/{#NAME}/status` HTTP Query||
-|PVE Storage {#NODE} - {#NAME} active|Storage is active if value is 1|1|
-|PVE Storage {#NODE} - {#NAME} enabled|Storage is enabled if value is 1|1|
-|PVE Storage {#NODE} - {#NAME} available|Available size in storage in bytes|10 Gb|
-|PVE Storage {#NODE} - {#NAME} size|Total size of storage in bytes|100 Gb|
-|PVE Storage {#NODE} - {#NAME} used|Used storage size in bytes|90 Gb|
-|PVE Storage {#NODE} - {#NAME} used in %|Used storage size in %|90 %|
+| Item                                    | Description                                                                                                           | Example |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------- |
+| PVE Storage {#NODE} - {#NAME}           | JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/storage/{#NAME}/status` HTTP Query |         |
+| PVE Storage {#NODE} - {#NAME} active    | Storage is active if value is 1                                                                                       | 1       |
+| PVE Storage {#NODE} - {#NAME} enabled   | Storage is enabled if value is 1                                                                                      | 1       |
+| PVE Storage {#NODE} - {#NAME} available | Available size in storage in bytes                                                                                    | 10 Gb   |
+| PVE Storage {#NODE} - {#NAME} size      | Total size of storage in bytes                                                                                        | 100 Gb  |
+| PVE Storage {#NODE} - {#NAME} used      | Used storage size in bytes                                                                                            | 90 Gb   |
+| PVE Storage {#NODE} - {#NAME} used in % | Used storage size in %                                                                                                | 90 %    |
 
 #### Storage triggers
 
-|Trigger|Severity|Description|
-|---------------------------------------|--------|-------------------------|
-|PVE Storage {#NODE} - {#NAME} unavailable|High|Storage is unavailable|
-|PVE Storage {#NODE} - {#NAME} disabled|Warning|Storage is disabled|
-|PVE Storage {#NODE} - {#NAME} used > 80 %|Warning|Storage usage > 80%|
-|PVE Storage {#NODE} - {#NAME} used > 90 %|High|Storage usage > 90%|
+| Trigger                                   | Severity | Description            |
+| ----------------------------------------- | -------- | ---------------------- |
+| PVE Storage {#NODE} - {#NAME} unavailable | High     | Storage is unavailable |
+| PVE Storage {#NODE} - {#NAME} disabled    | Warning  | Storage is disabled    |
+| PVE Storage {#NODE} - {#NAME} used > 80 % | Warning  | Storage usage > 80%    |
+| PVE Storage {#NODE} - {#NAME} used > 90 % | High     | Storage usage > 90%    |
 
 #### Storage graphs
 
-|Graph|Description|
-|----------------------------------|---------------|
-|PVE Storage {#NODE} - {#NAME} usage|Storage usage|
+| Graph                               | Description   |
+| ----------------------------------- | ------------- |
+| PVE Storage {#NODE} - {#NAME} usage | Storage usage |

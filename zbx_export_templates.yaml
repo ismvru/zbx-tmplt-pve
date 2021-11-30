@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-11-30T10:25:24Z'
+  date: '2021-11-30T10:39:40Z'
   groups:
     -
       uuid: 846977d1dfed4968bc5f8bdb363285bc
@@ -62,6 +62,37 @@ zabbix_export:
                     - $.memory.free
               master_item:
                 key: 'pve.nodes[{#NODE}]'
+            -
+              uuid: 37773a19718f45f1b8aeee7046f06121
+              name: 'PVE Node {#NODE} memory used in %'
+              type: CALCULATED
+              key: 'pve.nodes.memory.pused[{#NODE}]'
+              value_type: FLOAT
+              units: '%'
+              params: 'last(//pve.nodes.memory.used[{#NODE}, {#NAME}])/last(//pve.nodes.memory.total[{#NODE}, {#NAME}])'
+              description: 'Used RAM in %'
+              preprocessing:
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '100'
+              trigger_prototypes:
+                -
+                  uuid: ad58372005534b82b17b16b5c9a88814
+                  expression: 'last(/Proxmox VE by HTTP/pve.nodes.memory.pused[{#NODE}])>80'
+                  name: 'PVE Node {#NODE} memory usage > 80%'
+                  priority: WARNING
+                  description: 'Node RAM usage > 80%'
+                  dependencies:
+                    -
+                      name: 'PVE Node {#NODE} memory usage > 90%'
+                      expression: 'last(/Proxmox VE by HTTP/pve.nodes.memory.pused[{#NODE}])>90'
+                -
+                  uuid: ffc75ff4512342e88f33863a320128b8
+                  expression: 'last(/Proxmox VE by HTTP/pve.nodes.memory.pused[{#NODE}])>90'
+                  name: 'PVE Node {#NODE} memory usage > 90%'
+                  priority: HIGH
+                  description: 'Node RAM usage > 90%'
             -
               uuid: 9c05783b524a481f97333822f88dfcf8
               name: 'PVE Node {#NODE} memory size'
@@ -147,6 +178,37 @@ zabbix_export:
               master_item:
                 key: 'pve.nodes[{#NODE}]'
             -
+              uuid: d48275f9e42d49f3ae4ee5b3f05bbdc8
+              name: 'PVE Node {#NODE} rootfs used in %'
+              type: CALCULATED
+              key: 'pve.nodes.rootfs.pused[{#NODE}]'
+              value_type: FLOAT
+              units: '%'
+              params: 'last(//pve.nodes.rootfs.used[{#NODE}, {#NAME}])/last(//pve.nodes.rootfs.total[{#NODE}, {#NAME}])'
+              description: 'Used size in `/` in %'
+              preprocessing:
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '100'
+              trigger_prototypes:
+                -
+                  uuid: 93b19182b5284dde9e5ea11244995f41
+                  expression: 'last(/Proxmox VE by HTTP/pve.nodes.rootfs.pused[{#NODE}])>80'
+                  name: 'PVE Node {#NODE} rootfs usage > 80%'
+                  priority: WARNING
+                  description: 'Node rootfs usage > 80%'
+                  dependencies:
+                    -
+                      name: 'PVE Node {#NODE} rootfs usage > 90%'
+                      expression: 'last(/Proxmox VE by HTTP/pve.nodes.rootfs.pused[{#NODE}])>90'
+                -
+                  uuid: 9aaab1240cbb40e89f9f9a62d5899245
+                  expression: 'last(/Proxmox VE by HTTP/pve.nodes.rootfs.pused[{#NODE}])>90'
+                  name: 'PVE Node {#NODE} rootfs usage > 90%'
+                  priority: HIGH
+                  description: 'Node rootfs usage > 90%'
+            -
               uuid: 66acbbb17e27484d8b95cb99271e9266
               name: 'PVE Node {#NODE} rootfs size'
               type: DEPENDENT
@@ -191,6 +253,36 @@ zabbix_export:
                     - $.swap.free
               master_item:
                 key: 'pve.nodes[{#NODE}]'
+            -
+              uuid: f2e21b63e4af44ebb171fa1ff8ed231d
+              name: 'PVE Node {#NODE} swap used in %'
+              type: CALCULATED
+              key: 'pve.nodes.swap.pused[{#NODE}]'
+              value_type: FLOAT
+              units: '%'
+              params: 'last(//pve.nodes.swap.used[{#NODE}, {#NAME}])/last(//pve.nodes.swap.total[{#NODE}, {#NAME}])'
+              description: 'Used SWAP size in %'
+              preprocessing:
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '100'
+              trigger_prototypes:
+                -
+                  uuid: 5540ec84ebd34c038b83a4615f9dcda9
+                  expression: 'last(/Proxmox VE by HTTP/pve.nodes.swap.pused[{#NODE}])>80'
+                  name: 'PVE Node {#NODE} swap usage > 80%'
+                  priority: WARNING
+                  description: 'Node SWAP usage > 80%'
+                  dependencies:
+                    -
+                      name: 'PVE Node {#NODE} swap usage > 90%'
+                      expression: 'last(/Proxmox VE by HTTP/pve.nodes.swap.pused[{#NODE}])>90'
+                -
+                  uuid: 75ca21735abd4b178faa1846c1cb3457
+                  expression: 'last(/Proxmox VE by HTTP/pve.nodes.swap.pused[{#NODE}])>90'
+                  name: 'PVE Node {#NODE} swap usage > 90%'
+                  priority: HIGH
             -
               uuid: cd8ff86593124472901491e077969459
               name: 'PVE Node {#NODE} swap size'
@@ -524,8 +616,6 @@ zabbix_export:
                 -
                   uuid: cd50fb14b6374ef4810b1f7df9d3ac04
                   expression: 'last(/Proxmox VE by HTTP/pve.storage.available[{#NODE}, {#NAME}])=0'
-                  recovery_mode: RECOVERY_EXPRESSION
-                  recovery_expression: 'last(/Proxmox VE by HTTP/pve.storage.available[{#NODE}, {#NAME}])=1'
                   name: 'PVE Storage {#NODE} - {#NAME} unavailable'
                   priority: HIGH
             -
@@ -546,8 +636,6 @@ zabbix_export:
                 -
                   uuid: 79c2884dc3034c61ad183e0707651648
                   expression: 'last(/Proxmox VE by HTTP/pve.storage.enabled[{#NODE}, {#NAME}])=0'
-                  recovery_mode: RECOVERY_EXPRESSION
-                  recovery_expression: 'last(/Proxmox VE by HTTP/pve.storage.enabled[{#NODE}, {#NAME}])=1'
                   name: 'PVE Storage {#NODE} - {#NAME} disabled'
                   priority: WARNING
                   description: 'Storage is disabled'
@@ -570,8 +658,6 @@ zabbix_export:
                 -
                   uuid: 6a62cb31f3df4c07b2bb3aadb43fcf06
                   expression: 'last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])>80'
-                  recovery_mode: RECOVERY_EXPRESSION
-                  recovery_expression: 'last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])<80'
                   name: 'PVE Storage {#NODE} - {#NAME} used > 80 %'
                   priority: WARNING
                   description: 'Storage usage > 80%'
@@ -580,12 +666,9 @@ zabbix_export:
                     -
                       name: 'PVE Storage {#NODE} - {#NAME} used > 90 %'
                       expression: 'last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])>90'
-                      recovery_expression: 'last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])<90'
                 -
                   uuid: abd45535c7304684b7e153fcf6e9bad6
                   expression: 'last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])>90'
-                  recovery_mode: RECOVERY_EXPRESSION
-                  recovery_expression: 'last(/Proxmox VE by HTTP/pve.storage.pused[{#NODE}, {#NAME}])<90'
                   name: 'PVE Storage {#NODE} - {#NAME} used > 90 %'
                   priority: HIGH
                   description: 'Storage usage > 80%'
