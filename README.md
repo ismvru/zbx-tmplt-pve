@@ -4,6 +4,9 @@
   - [Usage](#usage)
   - [Macroses](#macroses)
   - [Discoveries](#discoveries)
+    - [PVE API resources - cluster](#pve-api-resources---cluster)
+      - [Cluster items](#cluster-items)
+      - [Cluster triggers](#cluster-triggers)
     - [PVE API resources - node](#pve-api-resources---node)
       - [Node items](#node-items)
       - [Node triggers](#node-triggers)
@@ -48,6 +51,25 @@ You will see "Token ID" (example - `root@pam!monitoring`) and "Secret" (some UUI
 | `{$PVE_API_TOKEN}` | PVE API Token      | `root@pam!monitoring=69ab8098-f2aa-455c-add3-e387aef0a47e` |
 
 ## Discoveries
+
+### PVE API resources - cluster
+
+Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then creates items and triggers
+
+#### Cluster items
+
+| Item                       | Description                                                                                         | Example |
+| -------------------------- | --------------------------------------------------------------------------------------------------- | ------- |
+| PVE Cluster {#NAME} status | JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` HTTP Query |         |
+| PVE Cluster {#NAME} nodes  | Cluster node count                                                                                  | 3       |
+| PVE Cluster {#NAME} quorum | If 1 - Cluster in quorum                                                                            | 1       |
+
+#### Cluster triggers
+
+| Trigger                                | Severity    | Description                             |
+| -------------------------------------- | ----------- | --------------------------------------- |
+| PVE Cluster {#NAME} node count changed | Information | Node count was changed since last check |
+| PVE Cluster {#NAME} not in quorum      | High        | Cluster not in quorum                   |
 
 ### PVE API resources - node
 

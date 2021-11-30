@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-11-30T12:39:04Z'
+  date: '2021-11-30T13:33:22Z'
   groups:
     -
       uuid: 846977d1dfed4968bc5f8bdb363285bc
@@ -473,6 +473,99 @@ zabbix_export:
               parameters:
                 - $.data
         -
+          uuid: ba98e126ff8b4d0abab76f79e919ef60
+          name: 'PVE API Resources - cluster'
+          type: HTTP_AGENT
+          key: pve.cluster.resources.cluster
+          delay: 10m
+          filter:
+            conditions:
+              -
+                macro: '{#TYPE}'
+                value: ^cluster$
+                formulaid: A
+          description: 'Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs'
+          item_prototypes:
+            -
+              uuid: 93fbb53121c94aaf9d5f12992ca40bf3
+              name: 'PVE Cluster {#NAME} nodes'
+              type: DEPENDENT
+              key: 'pve.cluster.nodes[{#NAME}]'
+              delay: '0'
+              description: 'Cluster node count'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.quorate
+              master_item:
+                key: 'pve.cluster[{#NAME}]'
+              trigger_prototypes:
+                -
+                  uuid: 9c3deb4ca07a49b6b6e36a2a8d0e79c4
+                  expression: 'change(/Proxmox VE by HTTP/pve.cluster.nodes[{#NAME}])<>0'
+                  name: 'PVE Cluster {#NAME} node count changed'
+                  priority: INFO
+                  description: 'Node count was changed since last check'
+            -
+              uuid: 3894e8d1e0884a1c81ad718f6f071e3e
+              name: 'PVE Cluster {#NAME} quorum'
+              type: DEPENDENT
+              key: 'pve.cluster.quorum[{#NAME}]'
+              delay: '0'
+              description: 'If 1 - Cluster in quorum'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.quorate
+              master_item:
+                key: 'pve.cluster[{#NAME}]'
+              trigger_prototypes:
+                -
+                  uuid: 03f19be0d2b44ae2b6331cb34459aa8b
+                  expression: 'last(/Proxmox VE by HTTP/pve.cluster.quorum[{#NAME}])<>1'
+                  name: 'PVE Cluster {#NAME} not in quorum'
+                  priority: HIGH
+                  description: 'Cluster not in quorum'
+            -
+              uuid: 4377ac71105c45e78e5fe96da47834b9
+              name: 'PVE Cluster {#NAME} status'
+              type: HTTP_AGENT
+              key: 'pve.cluster[{#NAME}]'
+              history: 1d
+              trends: '0'
+              value_type: TEXT
+              description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` HTTP Query'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.data.[?(@.name == ''{#NAME}'')].first()'
+              timeout: 10s
+              url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/'
+              headers:
+                -
+                  name: Authorization
+                  value: 'PVEAPIToken={$PVE_API_TOKEN}'
+          url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/'
+          headers:
+            -
+              name: Authorization
+              value: 'PVEAPIToken={$PVE_API_TOKEN}'
+          lld_macro_paths:
+            -
+              lld_macro: '{#NAME}'
+              path: '$.[''name'']'
+            -
+              lld_macro: '{#TYPE}'
+              path: '$.[''type'']'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.data
+        -
           uuid: 79675a8d02c2453a9cafbddd4cb5eeaa
           name: 'PVE API Resources - lxc'
           type: HTTP_AGENT
@@ -735,6 +828,7 @@ zabbix_export:
               name: 'PVE Ct {#VMID} - {#NAME}'
               type: HTTP_AGENT
               key: 'pve.ct[{#VMID}]'
+              history: 1d
               trends: '0'
               value_type: TEXT
               description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/lxc/{#VMID}/status/current` HTTP Query'
@@ -931,6 +1025,7 @@ zabbix_export:
               name: 'PVE Vm {#VMID} - {#NAME}'
               type: HTTP_AGENT
               key: 'pve.vm[{#VMID}]'
+              history: 1d
               trends: '0'
               value_type: TEXT
               description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/qemu/{#VMID}/status/current` HTTP Query'
@@ -1118,6 +1213,7 @@ zabbix_export:
               name: 'PVE Storage {#NODE} - {#NAME}'
               type: HTTP_AGENT
               key: 'pve.storage[{#NODE}, {#NAME}]'
+              history: 1d
               trends: '0'
               value_type: TEXT
               description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/storage/{#NAME}/status` HTTP Query'
