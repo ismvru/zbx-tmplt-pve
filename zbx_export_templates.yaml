@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-11-30T10:54:13Z'
+  date: '2021-11-30T11:35:30Z'
   groups:
     -
       uuid: 846977d1dfed4968bc5f8bdb363285bc
@@ -456,6 +456,368 @@ zabbix_export:
             -
               lld_macro: '{#IP}'
               path: '$.[''ip'']'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.data
+        -
+          uuid: 79675a8d02c2453a9cafbddd4cb5eeaa
+          name: 'PVE API Resources - lxc'
+          type: HTTP_AGENT
+          key: pve.cluster.resources.lxc
+          delay: 10m
+          filter:
+            conditions:
+              -
+                macro: '{#TYPE}'
+                value: ^lxc$
+                formulaid: A
+          description: 'Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs'
+          item_prototypes:
+            -
+              uuid: b1644ab351fb46dcaaa00cc30225a25c
+              name: 'PVE Ct {#VMID} - {#NAME} cpu usage'
+              type: DEPENDENT
+              key: 'pve.ct.cpu[{#VMID}]'
+              delay: '0'
+              value_type: FLOAT
+              units: '%'
+              description: 'Container CPU Usage in %'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.cpu
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '100'
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+              trigger_prototypes:
+                -
+                  uuid: c15a198e86904f738d98a3b49654c0b1
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.cpu[{#VMID}])>80'
+                  name: 'PVE Ct {#VMID} - {#NAME} high CPU usage'
+                  priority: WARNING
+                  description: 'Container CPU usage > 80%'
+            -
+              uuid: 0f475bc80ad84ff5a6c527e24e4876d4
+              name: 'PVE Ct {#VMID} - {#NAME} disk usage'
+              type: DEPENDENT
+              key: 'pve.ct.disk[{#VMID}]'
+              delay: '0'
+              units: b
+              description: 'Container disk usage in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.disk
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+            -
+              uuid: e2067ed4b7344554a53644d8bed47d58
+              name: 'PVE Ct {#VMID} - {#NAME} disk size'
+              type: DEPENDENT
+              key: 'pve.ct.maxdisk[{#VMID}]'
+              delay: '0'
+              units: b
+              description: 'Container disk size in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.maxdisk
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+            -
+              uuid: f4eb05006f2b42128594c604570cbb1b
+              name: 'PVE Ct {#VMID} - {#NAME} memory size'
+              type: DEPENDENT
+              key: 'pve.ct.maxmem[{#VMID}]'
+              delay: '0'
+              units: b
+              description: 'Container RAM size in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.maxmem
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+            -
+              uuid: ac4c01f14be643a89f7bd0876bfc0781
+              name: 'PVE Ct {#VMID} - {#NAME} swap size'
+              type: DEPENDENT
+              key: 'pve.ct.maxswap[{#VMID}]'
+              delay: '0'
+              units: b
+              description: 'Container SWAP size in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.maxswap
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+            -
+              uuid: 97a4d5ee8dff4077a686d41eacb9f678
+              name: 'PVE Ct {#VMID} - {#NAME} memory usage'
+              type: DEPENDENT
+              key: 'pve.ct.mem[{#VMID}]'
+              delay: '0'
+              units: b
+              description: 'Container RAM usage in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.mem
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+            -
+              uuid: 9aa57f73ed5f4d86ac9c18fa0649f3f3
+              name: 'PVE Ct {#VMID} - {#NAME} disk usage in %'
+              type: CALCULATED
+              key: 'pve.ct.pdisk[{#VMID}]'
+              value_type: FLOAT
+              units: '%'
+              params: 'last(//pve.ct.disk[{#VMID}])/last(//pve.ct.maxdisk[{#VMID}])'
+              description: 'Container SWAP usage in %'
+              trigger_prototypes:
+                -
+                  uuid: 50399f0eb27a4030bb38189c084a5a85
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pdisk[{#VMID}])>80'
+                  name: 'PVE Ct {#VMID} - {#NAME} disk usage > 80%'
+                  priority: WARNING
+                  description: 'Container disk usage > 80%'
+                  dependencies:
+                    -
+                      name: 'PVE Ct {#VMID} - {#NAME} disk usage > 90%'
+                      expression: 'last(/Proxmox VE by HTTP/pve.ct.pdisk[{#VMID}])>90'
+                -
+                  uuid: d10412a2f0ab4175ae8671671dfb9414
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pdisk[{#VMID}])>90'
+                  name: 'PVE Ct {#VMID} - {#NAME} disk usage > 90%'
+                  priority: HIGH
+                  description: 'Container disk usage > 90%'
+            -
+              uuid: 2790cb915ab145eb82d684ece2373cc7
+              name: 'PVE Ct {#VMID} - {#NAME} memory usage in %'
+              type: CALCULATED
+              key: 'pve.ct.pmem[{#VMID}]'
+              value_type: FLOAT
+              units: '%'
+              params: 'last(//pve.ct.mem[{#VMID}])/last(//pve.ct.maxmem[{#VMID}])'
+              description: 'Container RAM usage in %'
+              trigger_prototypes:
+                -
+                  uuid: a1b65fcb91b3422086be01ca0e59156d
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pmem[{#VMID}])>80'
+                  name: 'PVE Ct {#VMID} - {#NAME} RAM usage > 80%'
+                  priority: WARNING
+                  description: 'Container RAM usage > 80%'
+                  dependencies:
+                    -
+                      name: 'PVE Ct {#VMID} - {#NAME} RAM usage > 90%'
+                      expression: 'last(/Proxmox VE by HTTP/pve.ct.pmem[{#VMID}])>90'
+                -
+                  uuid: 2e1e70754e974fc493110f99cae3f9d4
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pmem[{#VMID}])>90'
+                  name: 'PVE Ct {#VMID} - {#NAME} RAM usage > 90%'
+                  priority: HIGH
+                  description: 'Container RAM usage > 90%'
+            -
+              uuid: a02cc95eb9ea4f17825ca1f1ff29d1cd
+              name: 'PVE Ct {#VMID} - {#NAME} swap usage in %'
+              type: CALCULATED
+              key: 'pve.ct.pswap[{#VMID}]'
+              value_type: FLOAT
+              units: '%'
+              params: 'last(//pve.ct.swap[{#VMID}])/last(//pve.ct.maxswap[{#VMID}])'
+              description: 'Container SWAP usage in %'
+              trigger_prototypes:
+                -
+                  uuid: 91084f9cfa2d451b8bd6915a6916a057
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pswap[{#VMID}])>80'
+                  name: 'PVE Ct {#VMID} - {#NAME} SWAP usage > 80%'
+                  priority: WARNING
+                  description: 'Container SWAP usage > 80%'
+                  dependencies:
+                    -
+                      name: 'PVE Ct {#VMID} - {#NAME} SWAP usage > 90%'
+                      expression: 'last(/Proxmox VE by HTTP/pve.ct.pswap[{#VMID}])>90'
+                -
+                  uuid: 92c502b555894371bb2250928349369c
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pswap[{#VMID}])>90'
+                  name: 'PVE Ct {#VMID} - {#NAME} SWAP usage > 90%'
+                  priority: HIGH
+                  description: 'Container SWAP usage > 90%'
+            -
+              uuid: 30db4c8cc4f1477cab79d071b32ab01c
+              name: 'PVE Ct {#VMID} - {#NAME} status'
+              type: DEPENDENT
+              key: 'pve.ct.status[{#VMID}]'
+              delay: '0'
+              trends: '0'
+              value_type: TEXT
+              description: 'String, current container state'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.status
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+              trigger_prototypes:
+                -
+                  uuid: 91288d5b6e654070aab1138fcb102dfb
+                  expression: 'find(/Proxmox VE by HTTP/pve.ct.status[{#VMID}],,,"running")=0'
+                  name: 'PVE Ct {#VMID} - {#NAME} is not running'
+                  priority: WARNING
+                  description: 'Container state is not "running"'
+            -
+              uuid: 8530d975f8934a88ade1c5c01bfe8511
+              name: 'PVE Ct {#VMID} - {#NAME} swap usage'
+              type: DEPENDENT
+              key: 'pve.ct.swap[{#VMID}]'
+              delay: '0'
+              units: b
+              description: 'Container SWAP usage in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.swap
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+            -
+              uuid: 0e58d46c3b7d4c969b187a22841541ff
+              name: 'PVE Ct {#VMID} - {#NAME} uptime'
+              type: DEPENDENT
+              key: 'pve.ct.uptime[{#VMID}]'
+              delay: '0'
+              units: s
+              description: 'Container uptime in seconds'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.uptime
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+              trigger_prototypes:
+                -
+                  uuid: eeaeb11a68d944bdb41498d086190765
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.uptime[{#VMID}])<600'
+                  name: 'PVE Ct {#VMID} - {#NAME} uptime < 10m'
+                  priority: WARNING
+                  description: 'Container uptime is < 600s'
+                  dependencies:
+                    -
+                      name: 'PVE Ct {#VMID} - {#NAME} is not running'
+                      expression: 'find(/Proxmox VE by HTTP/pve.ct.status[{#VMID}],,,"running")=0'
+            -
+              uuid: 6d8878433f5a4602aacd61fbc43eb14e
+              name: 'PVE Ct {#VMID} - {#NAME}'
+              type: HTTP_AGENT
+              key: 'pve.ct[{#VMID}]'
+              trends: '0'
+              value_type: TEXT
+              description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/lxc/{#VMID}/status/current` HTTP Query'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.data
+              timeout: 10s
+              url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/lxc/{#VMID}/status/current'
+              headers:
+                -
+                  name: Authorization
+                  value: 'PVEAPIToken={$PVE_API_TOKEN}'
+          graph_prototypes:
+            -
+              uuid: 20d46c6dfe1f4b85aaf85f56fa9df271
+              name: 'PVE Ct {#VMID} - {#NAME} CPU usage'
+              graph_items:
+                -
+                  sortorder: '1'
+                  color: 199C0D
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.cpu[{#VMID}]'
+            -
+              uuid: 350fdbbf2ad042929e193a48b752d5d1
+              name: 'PVE Ct {#VMID} - {#NAME} disk usage'
+              graph_items:
+                -
+                  sortorder: '1'
+                  color: 199C0D
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.maxdisk[{#VMID}]'
+                -
+                  sortorder: '2'
+                  drawtype: FILLED_REGION
+                  color: F63100
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.disk[{#VMID}]'
+            -
+              uuid: 0c32a59ec9094f07a4ef2f13c5d8b533
+              name: 'PVE Ct {#VMID} - {#NAME} RAM usage'
+              graph_items:
+                -
+                  sortorder: '1'
+                  color: 199C0D
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.maxmem[{#VMID}]'
+                -
+                  sortorder: '2'
+                  drawtype: FILLED_REGION
+                  color: F63100
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.mem[{#VMID}]'
+            -
+              uuid: 8d2de0b2525b4c42865e57da3e0a73d3
+              name: 'PVE Ct {#VMID} - {#NAME} SWAP usage'
+              graph_items:
+                -
+                  sortorder: '1'
+                  color: 199C0D
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.maxswap[{#VMID}]'
+                -
+                  sortorder: '2'
+                  drawtype: FILLED_REGION
+                  color: F63100
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.swap[{#VMID}]'
+          url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/'
+          headers:
+            -
+              name: Authorization
+              value: 'PVEAPIToken={$PVE_API_TOKEN}'
+          lld_macro_paths:
+            -
+              lld_macro: '{#NAME}'
+              path: '$.[''name'']'
+            -
+              lld_macro: '{#NODE}'
+              path: '$.[''node'']'
+            -
+              lld_macro: '{#TYPE}'
+              path: '$.[''type'']'
+            -
+              lld_macro: '{#VMID}'
+              path: '$.[''vmid'']'
           preprocessing:
             -
               type: JSONPATH

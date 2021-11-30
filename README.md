@@ -12,6 +12,10 @@
       - [Qemu items](#qemu-items)
       - [Qemu triggers](#qemu-triggers)
       - [Qemu graphs](#qemu-graphs)
+    - [PVE API Resources - lxc](#pve-api-resources---lxc)
+      - [LXC items](#lxc-items)
+      - [LXC triggers](#lxc-triggers)
+      - [LXC graphs](#lxc-graphs)
     - [PVE API Resources - storage](#pve-api-resources---storage)
       - [Storage items](#storage-items)
       - [Storage triggers](#storage-triggers)
@@ -121,6 +125,51 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and 
 | Graph                              | Description     |
 | ---------------------------------- | --------------- |
 | PVE Vm {#VMID} - {#NAME} CPU usage | CPU usage of VM |
+
+### PVE API Resources - lxc
+
+Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs
+
+#### LXC items
+
+| Item                                       | Description                                                                                                               | Example     |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| PVE Ct {#VMID} - {#NAME}                   | JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/lxc/{#VMID}/status/current` HTTP Query |             |
+| PVE Ct {#VMID} - {#NAME} cpu usage         | Container CPU Usage in %                                                                                                  | 4.427 %     |
+| PVE Ct {#VMID} - {#NAME} status            | String, current container state                                                                                           | running     |
+| PVE Ct {#VMID} - {#NAME} uptime            | Container uptime in seconds                                                                                               | 12d 13h 38m |
+| PVE Ct {#VMID} - {#NAME} disk size         | Container disk size in bytes                                                                                              | 8 Gb        |
+| PVE Ct {#VMID} - {#NAME} disk usage        | Container disk usage in bytes                                                                                             | 2 Gb        |
+| PVE Ct {#VMID} - {#NAME} disk usage in %   | Container disk usage in %                                                                                                 | 20 %        |
+| PVE Ct {#VMID} - {#NAME} swap size         | Container SWAP size in bytes                                                                                              | 2 Gb        |
+| PVE Ct {#VMID} - {#NAME} swap usage        | Container SWAP usage in bytes                                                                                             | 1 Gb        |
+| PVE Ct {#VMID} - {#NAME} swap usage in %   | Container SWAP usage in %                                                                                                 | 50 %        |
+| PVE Ct {#VMID} - {#NAME} memory size       | Container RAM size in bytes                                                                                               | 1 Gb        |
+| PVE Ct {#VMID} - {#NAME} memory usage      | Container RAM usage in bytes                                                                                              | 512 Mb      |
+| PVE Ct {#VMID} - {#NAME} memory usage in % | Container RAM usage in %                                                                                                  | 50 %        |
+
+#### LXC triggers
+
+| Trigger                                   | Severity | Description                      |
+| ----------------------------------------- | -------- | -------------------------------- |
+| PVE Ct {#VMID} - {#NAME} high CPU usage   | Warning  | Container CPU usage > 80%        |
+| PVE Ct {#VMID} - {#NAME} is not running   | Warning  | Container state is not "running" |
+| PVE Ct {#VMID} - {#NAME} uptime < 10m     | Warning  | Container uptime is < 600s       |
+| PVE Ct {#VMID} - {#NAME} RAM usage > 80%  | Warning  | Container RAM usage > 80%        |
+| PVE Ct {#VMID} - {#NAME} RAM usage > 90%  | High     | Container RAM usage > 90%        |
+| PVE Ct {#VMID} - {#NAME} SWAP usage > 80% | Warning  | Container SWAP usage > 80%       |
+| PVE Ct {#VMID} - {#NAME} SWAP usage > 90% | High     | Container SWAP usage > 90%       |
+| PVE Ct {#VMID} - {#NAME} disk usage > 80% | Warning  | Container disk usage > 80%       |
+| PVE Ct {#VMID} - {#NAME} disk usage > 90% | High     | Container disk usage > 90%       |
+
+#### LXC graphs
+
+| Graph                               | Description             |
+| ----------------------------------- | ----------------------- |
+| PVE Ct {#VMID} - {#NAME} CPU usage  | CPU usage of Container  |
+| PVE Ct {#VMID} - {#NAME} RAM usage  | RAM usage of Container  |
+| PVE Ct {#VMID} - {#NAME} disk usage | disk usage of Container |
+| PVE Ct {#VMID} - {#NAME} SWAP usage | SWAP usage of Container |
 
 ### PVE API Resources - storage
 
