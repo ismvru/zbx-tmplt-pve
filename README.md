@@ -4,10 +4,10 @@
   - [Usage](#usage)
   - [Macroses](#macroses)
   - [Discoveries](#discoveries)
-    - [PVE API Cluster](#pve-api-cluster)
-      - [Cluster items](#cluster-items)
-      - [Cluster triggers](#cluster-triggers)
-      - [Cluster graphs](#cluster-graphs)
+    - [PVE API resources - node](#pve-api-resources---node)
+      - [Node items](#node-items)
+      - [Node triggers](#node-triggers)
+      - [Node graphs](#node-graphs)
     - [PVE API Resources - qemu](#pve-api-resources---qemu)
       - [Qemu items](#qemu-items)
       - [Qemu triggers](#qemu-triggers)
@@ -49,11 +49,11 @@ You will see "Token ID" (example - `root@pam!monitoring`) and "Secret" (some UUI
 
 ## Discoveries
 
-### PVE API Cluster
+### PVE API resources - node
 
 Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then creates items, triggers and graphs
 
-#### Cluster items
+#### Node items
 
 | Item                              | Description                                                                                            | Example                      |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------- |
@@ -75,7 +75,7 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then c
 | PVE Node {#NODE} uptime           | Node uptime in seconds                                                                                 | 12d 13h 30m                  |
 | PVE Node {#NODE} CPU usage in %   | Node CPU usage in %                                                                                    | 15.252 %                     |
 
-#### Cluster triggers
+#### Node triggers
 
 | Trigger                                 | Severity    | Description                                       |
 | --------------------------------------- | ----------- | ------------------------------------------------- |
@@ -90,7 +90,7 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then c
 | PVE Node {#NODE} rootfs usage > 80%     | Warning     | Node rootfs usage > 80%                           |
 | PVE Node {#NODE} CPU usage > 80%        | High        | Node CPU usage > 80%                              |
 
-#### Cluster graphs
+#### Node graphs
 
 | Graph                   | Description                              |
 | ----------------------- | ---------------------------------------- |

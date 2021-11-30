@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-11-30T11:35:30Z'
+  date: '2021-11-30T12:39:04Z'
   groups:
     -
       uuid: 846977d1dfed4968bc5f8bdb363285bc
@@ -33,6 +33,14 @@ zabbix_export:
         
         - Import template into Zabbix
         - Attach template to any server you want, and fill macroses (described below)
+        
+        ## Macroses
+        
+        | Macro              | Description        | Example                                                    |
+        | ------------------ | ------------------ | ---------------------------------------------------------- |
+        | `{$PVE_API_HOST}`  | PVE web UI address | `pve.example.org`                                          |
+        | `{$PVE_API_PORT}`  | PVE web UI Port    | `8006`                                                     |
+        | `{$PVE_API_TOKEN}` | PVE API Token      | `root@pam!monitoring=69ab8098-f2aa-455c-add3-e387aef0a47e` |
       groups:
         -
           name: 'Templates/Operating systems'
@@ -41,7 +49,7 @@ zabbix_export:
       discovery_rules:
         -
           uuid: efb9aa937b1745a5b58535c8094bfb60
-          name: 'PVE API Cluster'
+          name: 'PVE API Resources - node'
           type: HTTP_AGENT
           key: pve.cluster
           delay: 10m
@@ -456,6 +464,9 @@ zabbix_export:
             -
               lld_macro: '{#IP}'
               path: '$.[''ip'']'
+            -
+              lld_macro: '{#TYPE}'
+              path: '$[''node'']'
           preprocessing:
             -
               type: JSONPATH
