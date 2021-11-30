@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-11-30T10:47:26Z'
+  date: '2021-11-30T10:54:13Z'
   groups:
     -
       uuid: 846977d1dfed4968bc5f8bdb363285bc
@@ -96,7 +96,7 @@ zabbix_export:
               key: 'pve.nodes.memory.pused[{#NODE}]'
               value_type: FLOAT
               units: '%'
-              params: 'last(//pve.nodes.memory.used[{#NODE}, {#NAME}])/last(//pve.nodes.memory.total[{#NODE}, {#NAME}])'
+              params: 'last(//pve.nodes.memory.used[{#NODE}])/last(//pve.nodes.memory.total[{#NODE}])'
               description: 'Used RAM in %'
               preprocessing:
                 -
@@ -211,7 +211,7 @@ zabbix_export:
               key: 'pve.nodes.rootfs.pused[{#NODE}]'
               value_type: FLOAT
               units: '%'
-              params: 'last(//pve.nodes.rootfs.used[{#NODE}, {#NAME}])/last(//pve.nodes.rootfs.total[{#NODE}, {#NAME}])'
+              params: 'last(//pve.nodes.rootfs.used[{#NODE}])/last(//pve.nodes.rootfs.total[{#NODE}])'
               description: 'Used size in `/` in %'
               preprocessing:
                 -
@@ -287,7 +287,7 @@ zabbix_export:
               key: 'pve.nodes.swap.pused[{#NODE}]'
               value_type: FLOAT
               units: '%'
-              params: 'last(//pve.nodes.swap.used[{#NODE}, {#NAME}])/last(//pve.nodes.swap.total[{#NODE}, {#NAME}])'
+              params: 'last(//pve.nodes.swap.used[{#NODE}])/last(//pve.nodes.swap.total[{#NODE}])'
               description: 'Used SWAP size in %'
               preprocessing:
                 -
