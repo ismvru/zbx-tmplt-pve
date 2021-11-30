@@ -15,10 +15,12 @@
       - [Qemu items](#qemu-items)
       - [Qemu triggers](#qemu-triggers)
       - [Qemu graphs](#qemu-graphs)
+      - [Qemu host prototypes](#qemu-host-prototypes)
     - [PVE API Resources - lxc](#pve-api-resources---lxc)
       - [LXC items](#lxc-items)
       - [LXC triggers](#lxc-triggers)
       - [LXC graphs](#lxc-graphs)
+      - [LXC host prototypes](#lxc-host-prototypes)
     - [PVE API Resources - storage](#pve-api-resources---storage)
       - [Storage items](#storage-items)
       - [Storage triggers](#storage-triggers)
@@ -123,7 +125,7 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then c
 
 ### PVE API Resources - qemu
 
-Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs
+Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers, graphs and hosts
 
 #### Qemu items
 
@@ -148,9 +150,17 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and 
 | ---------------------------------- | --------------- |
 | PVE Vm {#VMID} - {#NAME} CPU usage | CPU usage of VM |
 
+#### Qemu host prototypes
+
+Host creation is disabled by default!
+
+| Prototype                | Host name | Visible name             | Groups                        | Description     |
+| ------------------------ | --------- | ------------------------ | ----------------------------- | --------------- |
+| PVE Vm {#VMID} - {#NAME} | {#NAME}   | PVE Vm {#VMID} - {#NAME} | {#NODE} Vms, Discovered hosts | Create new host |
+
 ### PVE API Resources - lxc
 
-Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs
+Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers, graphs and hosts
 
 #### LXC items
 
@@ -192,6 +202,14 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and 
 | PVE Ct {#VMID} - {#NAME} RAM usage  | RAM usage of Container  |
 | PVE Ct {#VMID} - {#NAME} disk usage | disk usage of Container |
 | PVE Ct {#VMID} - {#NAME} SWAP usage | SWAP usage of Container |
+
+#### LXC host prototypes
+
+Host creation is disabled by default!
+
+| Prototype                | Host name | Visible name             | Groups                               | Description     |
+| ------------------------ | --------- | ------------------------ | ------------------------------------ | --------------- |
+| PVE Ct {#VMID} - {#NAME} | {#NAME}   | PVE Ct {#VMID} - {#NAME} | {#NODE} Containers, Discovered hosts | Create new host |
 
 ### PVE API Resources - storage
 

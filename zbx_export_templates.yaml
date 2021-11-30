@@ -1,7 +1,10 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-11-30T13:33:22Z'
+  date: '2021-11-30T14:17:50Z'
   groups:
+    -
+      uuid: f2481361f99448eea617b7b1d4765566
+      name: 'Discovered hosts'
     -
       uuid: 846977d1dfed4968bc5f8bdb363285bc
       name: 'Templates/Operating systems'
@@ -905,6 +908,21 @@ zabbix_export:
                   item:
                     host: 'Proxmox VE by HTTP'
                     key: 'pve.ct.swap[{#VMID}]'
+          host_prototypes:
+            -
+              uuid: 65cb8b301d78467ba1142b9e095672cb
+              host: '{#NAME}'
+              name: 'PVE Ct {#VMID} - {#NAME}'
+              status: DISABLED
+              discover: NO_DISCOVER
+              group_links:
+                -
+                  group:
+                    name: 'Discovered hosts'
+              group_prototypes:
+                -
+                  name: '{#NODE} Containers'
+              inventory_mode: AUTOMATIC
           url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/'
           headers:
             -
@@ -1051,6 +1069,21 @@ zabbix_export:
                   item:
                     host: 'Proxmox VE by HTTP'
                     key: 'pve.vm.cpu[{#VMID}]'
+          host_prototypes:
+            -
+              uuid: 706ca1aa49be4d29a4b48baadcb36021
+              host: '{#NAME}'
+              name: 'PVE Vm {#VMID} - {#NAME}'
+              status: DISABLED
+              discover: NO_DISCOVER
+              group_links:
+                -
+                  group:
+                    name: 'Discovered hosts'
+              group_prototypes:
+                -
+                  name: '{#NODE} Vms'
+              inventory_mode: AUTOMATIC
           url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/'
           headers:
             -
