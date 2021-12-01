@@ -3,6 +3,8 @@
 - [Proxmox VE by HTTP](#proxmox-ve-by-http)
   - [Usage](#usage)
   - [Macroses](#macroses)
+  - [Items](#items)
+  - [Triggers](#triggers)
   - [Discoveries](#discoveries)
     - [PVE API resources - cluster](#pve-api-resources---cluster)
       - [Cluster items](#cluster-items)
@@ -51,6 +53,21 @@ You will see "Token ID" (example - `root@pam!monitoring`) and "Secret" (some UUI
 | `{$PVE_API_HOST}`  | PVE web UI address | `pve.example.org`                                          |
 | `{$PVE_API_PORT}`  | PVE web UI Port    | `8006`                                                     |
 | `{$PVE_API_TOKEN}` | PVE API Token      | `root@pam!monitoring=69ab8098-f2aa-455c-add3-e387aef0a47e` |
+
+## Items
+
+| Item                              | Description                                                                                                              | Example                                                                                            |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| PVE Log - Warnings                | JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` HTTP Query, filtered by pri < 4 |                                                                                                    |
+| PVE Log - Warnings - Last         | Last warning JSON in logs                                                                                                |                                                                                                    |
+| PVE Log - Warnings - Last message | Last warning message in logs                                                                                             | `end task UPID:ns514098:00094DAC:07019DD0:61A73310:vncproxy:903:root@pam: Failed to run vncproxy.` |
+| PVE Log - Warnings - Last time    | Time of last warning message in logs                                                                                     | `2021-12-01 08:32:17`                                                                              |
+
+## Triggers
+
+| Trigger                        | Severity | Description                                    |
+| ------------------------------ | -------- | ---------------------------------------------- |
+| PVE Log Warnings - New warning | Warning  | New warning in PVE Log (**only manual close**) |
 
 ## Discoveries
 

@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-11-30T14:17:50Z'
+  date: '2021-12-01T19:44:34Z'
   groups:
     -
       uuid: f2481361f99448eea617b7b1d4765566
@@ -49,6 +49,83 @@ zabbix_export:
           name: 'Templates/Operating systems'
         -
           name: Templates/Virtualization
+      items:
+        -
+          uuid: 54e414d89698418c81a2725e57e38aff
+          name: 'PVE Log - Warnings'
+          type: HTTP_AGENT
+          key: pve.log
+          delay: 10m
+          history: 1d
+          trends: '0'
+          value_type: LOG
+          description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` HTTP Query, filtered by pri < 4'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.data
+            -
+              type: JSONPATH
+              parameters:
+                - '$.[?(@.pri < 4)]'
+          timeout: 30s
+          url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/log'
+          headers:
+            -
+              name: Authorization
+              value: 'PVEAPIToken={$PVE_API_TOKEN}'
+        -
+          uuid: 62f5f27b04b447ec959322bbf506bc18
+          name: 'PVE Log - Warnings - Last'
+          type: DEPENDENT
+          key: pve.log.last
+          delay: '0'
+          history: 1d
+          trends: '0'
+          value_type: LOG
+          description: 'Last warning JSON in logs'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - '$.[0]'
+          master_item:
+            key: pve.log
+        -
+          uuid: f9b4ef0ccb284ee0832e9ae56b71bf62
+          name: 'PVE Log - Warnings - Last message'
+          type: DEPENDENT
+          key: pve.log.last.message
+          delay: '0'
+          history: 10d
+          trends: '0'
+          value_type: TEXT
+          description: 'Last warning message in logs'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.msg
+          master_item:
+            key: pve.log.last
+        -
+          uuid: 1e7d3849985649d1a2eac487d6462ceb
+          name: 'PVE Log - Warnings - Last time'
+          type: DEPENDENT
+          key: pve.log.last.time
+          delay: '0'
+          history: 10d
+          trends: '0'
+          units: unixtime
+          description: 'Time of last warning message in logs'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.time
+          master_item:
+            key: pve.log.last
       discovery_rules:
         -
           uuid: efb9aa937b1745a5b58535c8094bfb60
@@ -1312,3 +1389,12 @@ zabbix_export:
           macro: '{$PVE_API_TOKEN}'
           type: SECRET_TEXT
           description: 'PVE API Token. Example: root@pam!monitoring=69ab8098-f2aa-455c-add3-e387aef0a47e'
+  triggers:
+    -
+      uuid: a26c25c66d58451e913138f4de70fd05
+      expression: 'change(/Proxmox VE by HTTP/pve.log.last.time)>0 and change(/Proxmox VE by HTTP/pve.log.last.message)<>0'
+      recovery_mode: NONE
+      name: 'PVE Log Warnings - New warning'
+      priority: WARNING
+      description: 'New warning in PVE Log (**only manual close**)'
+      manual_close: 'YES'
