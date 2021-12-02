@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-12-02T06:41:28Z'
+  date: '2021-12-02T07:27:16Z'
   groups:
     -
       uuid: f2481361f99448eea617b7b1d4765566
@@ -1387,6 +1387,12 @@ zabbix_export:
           type: SECRET_TEXT
           description: 'PVE API Token. Example: root@pam!monitoring=69ab8098-f2aa-455c-add3-e387aef0a47e'
   triggers:
+    -
+      uuid: 4ada30601119413a90e608bf2ce576c0
+      expression: 'nodata(/Proxmox VE by HTTP/pve.cluster.resources,30m)<>0 and nodata(/Proxmox VE by HTTP/pve.cluster.status,30m)<>0 and nodata(/Proxmox VE by HTTP/pve.log,30m)<>0'
+      name: 'PVE API - No data last 30m'
+      priority: HIGH
+      description: 'No data from API last 30 m'
     -
       uuid: a26c25c66d58451e913138f4de70fd05
       expression: 'change(/Proxmox VE by HTTP/pve.log.last.time)>0 and change(/Proxmox VE by HTTP/pve.log.last.message)<>0'

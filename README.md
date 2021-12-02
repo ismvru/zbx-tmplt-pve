@@ -70,6 +70,7 @@ You will see "Token ID" (example - `root@pam!monitoring`) and "Secret" (some UUI
 | Trigger                        | Severity | Description                                    |
 | ------------------------------ | -------- | ---------------------------------------------- |
 | PVE Log Warnings - New warning | Warning  | New warning in PVE Log (**only manual close**) |
+| PVE API - No data last 30m     | High     | No data from API last 30 m                     |
 
 ## Discoveries
 
