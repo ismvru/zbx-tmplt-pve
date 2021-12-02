@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-12-01T19:44:34Z'
+  date: '2021-12-02T06:41:28Z'
   groups:
     -
       uuid: f2481361f99448eea617b7b1d4765566
@@ -51,8 +51,47 @@ zabbix_export:
           name: Templates/Virtualization
       items:
         -
+          uuid: 2421ff30528f425e852e014a6c7a5f16
+          name: 'PVE API Cluster resources'
+          type: HTTP_AGENT
+          key: pve.cluster.resources
+          delay: 10m
+          history: 1d
+          trends: '0'
+          value_type: TEXT
+          description: 'Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/`  for autodiscovery'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.data
+          url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/'
+          headers:
+            -
+              name: Authorization
+              value: 'PVEAPIToken={$PVE_API_TOKEN}'
+        -
+          uuid: 486b8ae9eb2048378c6e660fd1a70fcc
+          name: 'PVE API Cluster status'
+          type: HTTP_AGENT
+          key: pve.cluster.status
+          history: 1d
+          trends: '0'
+          value_type: TEXT
+          description: 'Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/` for autodiscovery'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.data
+          url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/'
+          headers:
+            -
+              name: Authorization
+              value: 'PVEAPIToken={$PVE_API_TOKEN}'
+        -
           uuid: 54e414d89698418c81a2725e57e38aff
-          name: 'PVE Log - Warnings'
+          name: 'PVE API Log warnings'
           type: HTTP_AGENT
           key: pve.log
           delay: 10m
@@ -128,12 +167,466 @@ zabbix_export:
             key: pve.log.last
       discovery_rules:
         -
+          uuid: ba98e126ff8b4d0abab76f79e919ef60
+          name: 'PVE API Resources - cluster'
+          type: DEPENDENT
+          key: pve.cluster
+          delay: '0'
+          filter:
+            conditions:
+              -
+                macro: '{#TYPE}'
+                value: ^cluster$
+                formulaid: A
+          description: 'Filter pve.cluster.resources and creates items, triggers and graphs'
+          item_prototypes:
+            -
+              uuid: 93fbb53121c94aaf9d5f12992ca40bf3
+              name: 'PVE Cluster {#NAME} nodes'
+              type: DEPENDENT
+              key: 'pve.cluster.nodes[{#NAME}]'
+              delay: '0'
+              description: 'Cluster node count'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.quorate
+              master_item:
+                key: 'pve.cluster[{#NAME}]'
+              trigger_prototypes:
+                -
+                  uuid: 9c3deb4ca07a49b6b6e36a2a8d0e79c4
+                  expression: 'change(/Proxmox VE by HTTP/pve.cluster.nodes[{#NAME}])<>0'
+                  name: 'PVE Cluster {#NAME} node count changed'
+                  priority: INFO
+                  description: 'Node count was changed since last check'
+            -
+              uuid: 3894e8d1e0884a1c81ad718f6f071e3e
+              name: 'PVE Cluster {#NAME} quorum'
+              type: DEPENDENT
+              key: 'pve.cluster.quorum[{#NAME}]'
+              delay: '0'
+              description: 'If 1 - Cluster in quorum'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.quorate
+              master_item:
+                key: 'pve.cluster[{#NAME}]'
+              trigger_prototypes:
+                -
+                  uuid: 03f19be0d2b44ae2b6331cb34459aa8b
+                  expression: 'last(/Proxmox VE by HTTP/pve.cluster.quorum[{#NAME}])<>1'
+                  name: 'PVE Cluster {#NAME} not in quorum'
+                  priority: HIGH
+                  description: 'Cluster not in quorum'
+            -
+              uuid: 4377ac71105c45e78e5fe96da47834b9
+              name: 'PVE Cluster {#NAME} status'
+              type: HTTP_AGENT
+              key: 'pve.cluster[{#NAME}]'
+              history: 1d
+              trends: '0'
+              value_type: TEXT
+              description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` HTTP Query'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.data.[?(@.name == ''{#NAME}'')].first()'
+              timeout: 10s
+              url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/'
+              headers:
+                -
+                  name: Authorization
+                  value: 'PVEAPIToken={$PVE_API_TOKEN}'
+          master_item:
+            key: pve.cluster.resources
+          lld_macro_paths:
+            -
+              lld_macro: '{#NAME}'
+              path: '$.[''name'']'
+            -
+              lld_macro: '{#TYPE}'
+              path: '$.[''type'']'
+        -
+          uuid: 79675a8d02c2453a9cafbddd4cb5eeaa
+          name: 'PVE API Resources - lxc'
+          type: DEPENDENT
+          key: pve.ct
+          delay: '0'
+          filter:
+            conditions:
+              -
+                macro: '{#TYPE}'
+                value: ^lxc$
+                formulaid: A
+          description: 'Filter pve.cluster.resources and creates items, triggers and graphs'
+          item_prototypes:
+            -
+              uuid: b1644ab351fb46dcaaa00cc30225a25c
+              name: 'PVE Ct {#VMID} - {#NAME} cpu usage'
+              type: DEPENDENT
+              key: 'pve.ct.cpu[{#VMID}]'
+              delay: '0'
+              value_type: FLOAT
+              units: '%'
+              description: 'Container CPU Usage in %'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.cpu
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '100'
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+              trigger_prototypes:
+                -
+                  uuid: c15a198e86904f738d98a3b49654c0b1
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.cpu[{#VMID}])>80'
+                  name: 'PVE Ct {#VMID} - {#NAME} high CPU usage'
+                  priority: WARNING
+                  description: 'Container CPU usage > 80%'
+            -
+              uuid: 0f475bc80ad84ff5a6c527e24e4876d4
+              name: 'PVE Ct {#VMID} - {#NAME} disk usage'
+              type: DEPENDENT
+              key: 'pve.ct.disk[{#VMID}]'
+              delay: '0'
+              units: b
+              description: 'Container disk usage in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.disk
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+            -
+              uuid: e2067ed4b7344554a53644d8bed47d58
+              name: 'PVE Ct {#VMID} - {#NAME} disk size'
+              type: DEPENDENT
+              key: 'pve.ct.maxdisk[{#VMID}]'
+              delay: '0'
+              units: b
+              description: 'Container disk size in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.maxdisk
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+            -
+              uuid: f4eb05006f2b42128594c604570cbb1b
+              name: 'PVE Ct {#VMID} - {#NAME} memory size'
+              type: DEPENDENT
+              key: 'pve.ct.maxmem[{#VMID}]'
+              delay: '0'
+              units: b
+              description: 'Container RAM size in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.maxmem
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+            -
+              uuid: ac4c01f14be643a89f7bd0876bfc0781
+              name: 'PVE Ct {#VMID} - {#NAME} swap size'
+              type: DEPENDENT
+              key: 'pve.ct.maxswap[{#VMID}]'
+              delay: '0'
+              units: b
+              description: 'Container SWAP size in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.maxswap
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+            -
+              uuid: 97a4d5ee8dff4077a686d41eacb9f678
+              name: 'PVE Ct {#VMID} - {#NAME} memory usage'
+              type: DEPENDENT
+              key: 'pve.ct.mem[{#VMID}]'
+              delay: '0'
+              units: b
+              description: 'Container RAM usage in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.mem
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+            -
+              uuid: 9aa57f73ed5f4d86ac9c18fa0649f3f3
+              name: 'PVE Ct {#VMID} - {#NAME} disk usage in %'
+              type: CALCULATED
+              key: 'pve.ct.pdisk[{#VMID}]'
+              value_type: FLOAT
+              units: '%'
+              params: 'last(//pve.ct.disk[{#VMID}])/last(//pve.ct.maxdisk[{#VMID}])'
+              description: 'Container SWAP usage in %'
+              trigger_prototypes:
+                -
+                  uuid: 50399f0eb27a4030bb38189c084a5a85
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pdisk[{#VMID}])>80'
+                  name: 'PVE Ct {#VMID} - {#NAME} disk usage > 80%'
+                  priority: WARNING
+                  description: 'Container disk usage > 80%'
+                  dependencies:
+                    -
+                      name: 'PVE Ct {#VMID} - {#NAME} disk usage > 90%'
+                      expression: 'last(/Proxmox VE by HTTP/pve.ct.pdisk[{#VMID}])>90'
+                -
+                  uuid: d10412a2f0ab4175ae8671671dfb9414
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pdisk[{#VMID}])>90'
+                  name: 'PVE Ct {#VMID} - {#NAME} disk usage > 90%'
+                  priority: HIGH
+                  description: 'Container disk usage > 90%'
+            -
+              uuid: 2790cb915ab145eb82d684ece2373cc7
+              name: 'PVE Ct {#VMID} - {#NAME} memory usage in %'
+              type: CALCULATED
+              key: 'pve.ct.pmem[{#VMID}]'
+              value_type: FLOAT
+              units: '%'
+              params: 'last(//pve.ct.mem[{#VMID}])/last(//pve.ct.maxmem[{#VMID}])'
+              description: 'Container RAM usage in %'
+              trigger_prototypes:
+                -
+                  uuid: a1b65fcb91b3422086be01ca0e59156d
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pmem[{#VMID}])>80'
+                  name: 'PVE Ct {#VMID} - {#NAME} RAM usage > 80%'
+                  priority: WARNING
+                  description: 'Container RAM usage > 80%'
+                  dependencies:
+                    -
+                      name: 'PVE Ct {#VMID} - {#NAME} RAM usage > 90%'
+                      expression: 'last(/Proxmox VE by HTTP/pve.ct.pmem[{#VMID}])>90'
+                -
+                  uuid: 2e1e70754e974fc493110f99cae3f9d4
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pmem[{#VMID}])>90'
+                  name: 'PVE Ct {#VMID} - {#NAME} RAM usage > 90%'
+                  priority: HIGH
+                  description: 'Container RAM usage > 90%'
+            -
+              uuid: a02cc95eb9ea4f17825ca1f1ff29d1cd
+              name: 'PVE Ct {#VMID} - {#NAME} swap usage in %'
+              type: CALCULATED
+              key: 'pve.ct.pswap[{#VMID}]'
+              value_type: FLOAT
+              units: '%'
+              params: 'last(//pve.ct.swap[{#VMID}])/last(//pve.ct.maxswap[{#VMID}])'
+              description: 'Container SWAP usage in %'
+              trigger_prototypes:
+                -
+                  uuid: 91084f9cfa2d451b8bd6915a6916a057
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pswap[{#VMID}])>80'
+                  name: 'PVE Ct {#VMID} - {#NAME} SWAP usage > 80%'
+                  priority: WARNING
+                  description: 'Container SWAP usage > 80%'
+                  dependencies:
+                    -
+                      name: 'PVE Ct {#VMID} - {#NAME} SWAP usage > 90%'
+                      expression: 'last(/Proxmox VE by HTTP/pve.ct.pswap[{#VMID}])>90'
+                -
+                  uuid: 92c502b555894371bb2250928349369c
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pswap[{#VMID}])>90'
+                  name: 'PVE Ct {#VMID} - {#NAME} SWAP usage > 90%'
+                  priority: HIGH
+                  description: 'Container SWAP usage > 90%'
+            -
+              uuid: 30db4c8cc4f1477cab79d071b32ab01c
+              name: 'PVE Ct {#VMID} - {#NAME} status'
+              type: DEPENDENT
+              key: 'pve.ct.status[{#VMID}]'
+              delay: '0'
+              trends: '0'
+              value_type: TEXT
+              description: 'String, current container state'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.status
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+              trigger_prototypes:
+                -
+                  uuid: 91288d5b6e654070aab1138fcb102dfb
+                  expression: 'find(/Proxmox VE by HTTP/pve.ct.status[{#VMID}],,,"running")=0'
+                  name: 'PVE Ct {#VMID} - {#NAME} is not running'
+                  priority: WARNING
+                  description: 'Container state is not "running"'
+            -
+              uuid: 8530d975f8934a88ade1c5c01bfe8511
+              name: 'PVE Ct {#VMID} - {#NAME} swap usage'
+              type: DEPENDENT
+              key: 'pve.ct.swap[{#VMID}]'
+              delay: '0'
+              units: b
+              description: 'Container SWAP usage in bytes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.swap
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+            -
+              uuid: 0e58d46c3b7d4c969b187a22841541ff
+              name: 'PVE Ct {#VMID} - {#NAME} uptime'
+              type: DEPENDENT
+              key: 'pve.ct.uptime[{#VMID}]'
+              delay: '0'
+              units: s
+              description: 'Container uptime in seconds'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.uptime
+              master_item:
+                key: 'pve.ct[{#VMID}]'
+              trigger_prototypes:
+                -
+                  uuid: eeaeb11a68d944bdb41498d086190765
+                  expression: 'last(/Proxmox VE by HTTP/pve.ct.uptime[{#VMID}])<600'
+                  name: 'PVE Ct {#VMID} - {#NAME} uptime < 10m'
+                  priority: WARNING
+                  description: 'Container uptime is < 600s'
+                  dependencies:
+                    -
+                      name: 'PVE Ct {#VMID} - {#NAME} is not running'
+                      expression: 'find(/Proxmox VE by HTTP/pve.ct.status[{#VMID}],,,"running")=0'
+            -
+              uuid: 6d8878433f5a4602aacd61fbc43eb14e
+              name: 'PVE Ct {#VMID} - {#NAME}'
+              type: HTTP_AGENT
+              key: 'pve.ct[{#VMID}]'
+              history: 1d
+              trends: '0'
+              value_type: TEXT
+              description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/lxc/{#VMID}/status/current` HTTP Query'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.data
+              timeout: 10s
+              url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/lxc/{#VMID}/status/current'
+              headers:
+                -
+                  name: Authorization
+                  value: 'PVEAPIToken={$PVE_API_TOKEN}'
+          graph_prototypes:
+            -
+              uuid: 20d46c6dfe1f4b85aaf85f56fa9df271
+              name: 'PVE Ct {#VMID} - {#NAME} CPU usage'
+              graph_items:
+                -
+                  sortorder: '1'
+                  color: 199C0D
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.cpu[{#VMID}]'
+            -
+              uuid: 350fdbbf2ad042929e193a48b752d5d1
+              name: 'PVE Ct {#VMID} - {#NAME} disk usage'
+              graph_items:
+                -
+                  sortorder: '1'
+                  color: 199C0D
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.maxdisk[{#VMID}]'
+                -
+                  sortorder: '2'
+                  drawtype: FILLED_REGION
+                  color: F63100
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.disk[{#VMID}]'
+            -
+              uuid: 0c32a59ec9094f07a4ef2f13c5d8b533
+              name: 'PVE Ct {#VMID} - {#NAME} RAM usage'
+              graph_items:
+                -
+                  sortorder: '1'
+                  color: 199C0D
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.maxmem[{#VMID}]'
+                -
+                  sortorder: '2'
+                  drawtype: FILLED_REGION
+                  color: F63100
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.mem[{#VMID}]'
+            -
+              uuid: 8d2de0b2525b4c42865e57da3e0a73d3
+              name: 'PVE Ct {#VMID} - {#NAME} SWAP usage'
+              graph_items:
+                -
+                  sortorder: '1'
+                  color: 199C0D
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.maxswap[{#VMID}]'
+                -
+                  sortorder: '2'
+                  drawtype: FILLED_REGION
+                  color: F63100
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.ct.swap[{#VMID}]'
+          host_prototypes:
+            -
+              uuid: 65cb8b301d78467ba1142b9e095672cb
+              host: '{#NAME}'
+              name: 'PVE Ct {#VMID} - {#NAME}'
+              status: DISABLED
+              discover: NO_DISCOVER
+              group_links:
+                -
+                  group:
+                    name: 'Discovered hosts'
+              group_prototypes:
+                -
+                  name: '{#NODE} Containers'
+          master_item:
+            key: pve.cluster.resources
+          lld_macro_paths:
+            -
+              lld_macro: '{#NAME}'
+              path: '$.[''name'']'
+            -
+              lld_macro: '{#NODE}'
+              path: '$.[''node'']'
+            -
+              lld_macro: '{#TYPE}'
+              path: '$.[''type'']'
+            -
+              lld_macro: '{#VMID}'
+              path: '$.[''vmid'']'
+        -
           uuid: efb9aa937b1745a5b58535c8094bfb60
           name: 'PVE API Resources - node'
-          type: HTTP_AGENT
-          key: pve.cluster
-          delay: 10m
-          description: 'Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then creates items, triggers and graphs'
+          type: DEPENDENT
+          key: pve.nodes
+          delay: '0'
+          description: 'Filter pve.cluster.status and creates items, triggers and graphs'
           item_prototypes:
             -
               uuid: ab87ce129a5f43ac8ea14e2b370e8f84
@@ -532,11 +1025,8 @@ zabbix_export:
                   item:
                     host: 'Proxmox VE by HTTP'
                     key: 'pve.nodes.swap.used[{#NODE}]'
-          url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/'
-          headers:
-            -
-              name: Authorization
-              value: 'PVEAPIToken={$PVE_API_TOKEN}'
+          master_item:
+            key: pve.cluster.status
           lld_macro_paths:
             -
               lld_macro: '{#NODE}'
@@ -547,656 +1037,19 @@ zabbix_export:
             -
               lld_macro: '{#TYPE}'
               path: '$[''node'']'
-          preprocessing:
-            -
-              type: JSONPATH
-              parameters:
-                - $.data
-        -
-          uuid: ba98e126ff8b4d0abab76f79e919ef60
-          name: 'PVE API Resources - cluster'
-          type: HTTP_AGENT
-          key: pve.cluster.resources.cluster
-          delay: 10m
-          filter:
-            conditions:
-              -
-                macro: '{#TYPE}'
-                value: ^cluster$
-                formulaid: A
-          description: 'Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs'
-          item_prototypes:
-            -
-              uuid: 93fbb53121c94aaf9d5f12992ca40bf3
-              name: 'PVE Cluster {#NAME} nodes'
-              type: DEPENDENT
-              key: 'pve.cluster.nodes[{#NAME}]'
-              delay: '0'
-              description: 'Cluster node count'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.quorate
-              master_item:
-                key: 'pve.cluster[{#NAME}]'
-              trigger_prototypes:
-                -
-                  uuid: 9c3deb4ca07a49b6b6e36a2a8d0e79c4
-                  expression: 'change(/Proxmox VE by HTTP/pve.cluster.nodes[{#NAME}])<>0'
-                  name: 'PVE Cluster {#NAME} node count changed'
-                  priority: INFO
-                  description: 'Node count was changed since last check'
-            -
-              uuid: 3894e8d1e0884a1c81ad718f6f071e3e
-              name: 'PVE Cluster {#NAME} quorum'
-              type: DEPENDENT
-              key: 'pve.cluster.quorum[{#NAME}]'
-              delay: '0'
-              description: 'If 1 - Cluster in quorum'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.quorate
-              master_item:
-                key: 'pve.cluster[{#NAME}]'
-              trigger_prototypes:
-                -
-                  uuid: 03f19be0d2b44ae2b6331cb34459aa8b
-                  expression: 'last(/Proxmox VE by HTTP/pve.cluster.quorum[{#NAME}])<>1'
-                  name: 'PVE Cluster {#NAME} not in quorum'
-                  priority: HIGH
-                  description: 'Cluster not in quorum'
-            -
-              uuid: 4377ac71105c45e78e5fe96da47834b9
-              name: 'PVE Cluster {#NAME} status'
-              type: HTTP_AGENT
-              key: 'pve.cluster[{#NAME}]'
-              history: 1d
-              trends: '0'
-              value_type: TEXT
-              description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` HTTP Query'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - '$.data.[?(@.name == ''{#NAME}'')].first()'
-              timeout: 10s
-              url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/'
-              headers:
-                -
-                  name: Authorization
-                  value: 'PVEAPIToken={$PVE_API_TOKEN}'
-          url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/'
-          headers:
-            -
-              name: Authorization
-              value: 'PVEAPIToken={$PVE_API_TOKEN}'
-          lld_macro_paths:
-            -
-              lld_macro: '{#NAME}'
-              path: '$.[''name'']'
-            -
-              lld_macro: '{#TYPE}'
-              path: '$.[''type'']'
-          preprocessing:
-            -
-              type: JSONPATH
-              parameters:
-                - $.data
-        -
-          uuid: 79675a8d02c2453a9cafbddd4cb5eeaa
-          name: 'PVE API Resources - lxc'
-          type: HTTP_AGENT
-          key: pve.cluster.resources.lxc
-          delay: 10m
-          filter:
-            conditions:
-              -
-                macro: '{#TYPE}'
-                value: ^lxc$
-                formulaid: A
-          description: 'Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs'
-          item_prototypes:
-            -
-              uuid: b1644ab351fb46dcaaa00cc30225a25c
-              name: 'PVE Ct {#VMID} - {#NAME} cpu usage'
-              type: DEPENDENT
-              key: 'pve.ct.cpu[{#VMID}]'
-              delay: '0'
-              value_type: FLOAT
-              units: '%'
-              description: 'Container CPU Usage in %'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.cpu
-                -
-                  type: MULTIPLIER
-                  parameters:
-                    - '100'
-              master_item:
-                key: 'pve.ct[{#VMID}]'
-              trigger_prototypes:
-                -
-                  uuid: c15a198e86904f738d98a3b49654c0b1
-                  expression: 'last(/Proxmox VE by HTTP/pve.ct.cpu[{#VMID}])>80'
-                  name: 'PVE Ct {#VMID} - {#NAME} high CPU usage'
-                  priority: WARNING
-                  description: 'Container CPU usage > 80%'
-            -
-              uuid: 0f475bc80ad84ff5a6c527e24e4876d4
-              name: 'PVE Ct {#VMID} - {#NAME} disk usage'
-              type: DEPENDENT
-              key: 'pve.ct.disk[{#VMID}]'
-              delay: '0'
-              units: b
-              description: 'Container disk usage in bytes'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.disk
-              master_item:
-                key: 'pve.ct[{#VMID}]'
-            -
-              uuid: e2067ed4b7344554a53644d8bed47d58
-              name: 'PVE Ct {#VMID} - {#NAME} disk size'
-              type: DEPENDENT
-              key: 'pve.ct.maxdisk[{#VMID}]'
-              delay: '0'
-              units: b
-              description: 'Container disk size in bytes'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.maxdisk
-              master_item:
-                key: 'pve.ct[{#VMID}]'
-            -
-              uuid: f4eb05006f2b42128594c604570cbb1b
-              name: 'PVE Ct {#VMID} - {#NAME} memory size'
-              type: DEPENDENT
-              key: 'pve.ct.maxmem[{#VMID}]'
-              delay: '0'
-              units: b
-              description: 'Container RAM size in bytes'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.maxmem
-              master_item:
-                key: 'pve.ct[{#VMID}]'
-            -
-              uuid: ac4c01f14be643a89f7bd0876bfc0781
-              name: 'PVE Ct {#VMID} - {#NAME} swap size'
-              type: DEPENDENT
-              key: 'pve.ct.maxswap[{#VMID}]'
-              delay: '0'
-              units: b
-              description: 'Container SWAP size in bytes'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.maxswap
-              master_item:
-                key: 'pve.ct[{#VMID}]'
-            -
-              uuid: 97a4d5ee8dff4077a686d41eacb9f678
-              name: 'PVE Ct {#VMID} - {#NAME} memory usage'
-              type: DEPENDENT
-              key: 'pve.ct.mem[{#VMID}]'
-              delay: '0'
-              units: b
-              description: 'Container RAM usage in bytes'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.mem
-              master_item:
-                key: 'pve.ct[{#VMID}]'
-            -
-              uuid: 9aa57f73ed5f4d86ac9c18fa0649f3f3
-              name: 'PVE Ct {#VMID} - {#NAME} disk usage in %'
-              type: CALCULATED
-              key: 'pve.ct.pdisk[{#VMID}]'
-              value_type: FLOAT
-              units: '%'
-              params: 'last(//pve.ct.disk[{#VMID}])/last(//pve.ct.maxdisk[{#VMID}])'
-              description: 'Container SWAP usage in %'
-              trigger_prototypes:
-                -
-                  uuid: 50399f0eb27a4030bb38189c084a5a85
-                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pdisk[{#VMID}])>80'
-                  name: 'PVE Ct {#VMID} - {#NAME} disk usage > 80%'
-                  priority: WARNING
-                  description: 'Container disk usage > 80%'
-                  dependencies:
-                    -
-                      name: 'PVE Ct {#VMID} - {#NAME} disk usage > 90%'
-                      expression: 'last(/Proxmox VE by HTTP/pve.ct.pdisk[{#VMID}])>90'
-                -
-                  uuid: d10412a2f0ab4175ae8671671dfb9414
-                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pdisk[{#VMID}])>90'
-                  name: 'PVE Ct {#VMID} - {#NAME} disk usage > 90%'
-                  priority: HIGH
-                  description: 'Container disk usage > 90%'
-            -
-              uuid: 2790cb915ab145eb82d684ece2373cc7
-              name: 'PVE Ct {#VMID} - {#NAME} memory usage in %'
-              type: CALCULATED
-              key: 'pve.ct.pmem[{#VMID}]'
-              value_type: FLOAT
-              units: '%'
-              params: 'last(//pve.ct.mem[{#VMID}])/last(//pve.ct.maxmem[{#VMID}])'
-              description: 'Container RAM usage in %'
-              trigger_prototypes:
-                -
-                  uuid: a1b65fcb91b3422086be01ca0e59156d
-                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pmem[{#VMID}])>80'
-                  name: 'PVE Ct {#VMID} - {#NAME} RAM usage > 80%'
-                  priority: WARNING
-                  description: 'Container RAM usage > 80%'
-                  dependencies:
-                    -
-                      name: 'PVE Ct {#VMID} - {#NAME} RAM usage > 90%'
-                      expression: 'last(/Proxmox VE by HTTP/pve.ct.pmem[{#VMID}])>90'
-                -
-                  uuid: 2e1e70754e974fc493110f99cae3f9d4
-                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pmem[{#VMID}])>90'
-                  name: 'PVE Ct {#VMID} - {#NAME} RAM usage > 90%'
-                  priority: HIGH
-                  description: 'Container RAM usage > 90%'
-            -
-              uuid: a02cc95eb9ea4f17825ca1f1ff29d1cd
-              name: 'PVE Ct {#VMID} - {#NAME} swap usage in %'
-              type: CALCULATED
-              key: 'pve.ct.pswap[{#VMID}]'
-              value_type: FLOAT
-              units: '%'
-              params: 'last(//pve.ct.swap[{#VMID}])/last(//pve.ct.maxswap[{#VMID}])'
-              description: 'Container SWAP usage in %'
-              trigger_prototypes:
-                -
-                  uuid: 91084f9cfa2d451b8bd6915a6916a057
-                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pswap[{#VMID}])>80'
-                  name: 'PVE Ct {#VMID} - {#NAME} SWAP usage > 80%'
-                  priority: WARNING
-                  description: 'Container SWAP usage > 80%'
-                  dependencies:
-                    -
-                      name: 'PVE Ct {#VMID} - {#NAME} SWAP usage > 90%'
-                      expression: 'last(/Proxmox VE by HTTP/pve.ct.pswap[{#VMID}])>90'
-                -
-                  uuid: 92c502b555894371bb2250928349369c
-                  expression: 'last(/Proxmox VE by HTTP/pve.ct.pswap[{#VMID}])>90'
-                  name: 'PVE Ct {#VMID} - {#NAME} SWAP usage > 90%'
-                  priority: HIGH
-                  description: 'Container SWAP usage > 90%'
-            -
-              uuid: 30db4c8cc4f1477cab79d071b32ab01c
-              name: 'PVE Ct {#VMID} - {#NAME} status'
-              type: DEPENDENT
-              key: 'pve.ct.status[{#VMID}]'
-              delay: '0'
-              trends: '0'
-              value_type: TEXT
-              description: 'String, current container state'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.status
-              master_item:
-                key: 'pve.ct[{#VMID}]'
-              trigger_prototypes:
-                -
-                  uuid: 91288d5b6e654070aab1138fcb102dfb
-                  expression: 'find(/Proxmox VE by HTTP/pve.ct.status[{#VMID}],,,"running")=0'
-                  name: 'PVE Ct {#VMID} - {#NAME} is not running'
-                  priority: WARNING
-                  description: 'Container state is not "running"'
-            -
-              uuid: 8530d975f8934a88ade1c5c01bfe8511
-              name: 'PVE Ct {#VMID} - {#NAME} swap usage'
-              type: DEPENDENT
-              key: 'pve.ct.swap[{#VMID}]'
-              delay: '0'
-              units: b
-              description: 'Container SWAP usage in bytes'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.swap
-              master_item:
-                key: 'pve.ct[{#VMID}]'
-            -
-              uuid: 0e58d46c3b7d4c969b187a22841541ff
-              name: 'PVE Ct {#VMID} - {#NAME} uptime'
-              type: DEPENDENT
-              key: 'pve.ct.uptime[{#VMID}]'
-              delay: '0'
-              units: s
-              description: 'Container uptime in seconds'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.uptime
-              master_item:
-                key: 'pve.ct[{#VMID}]'
-              trigger_prototypes:
-                -
-                  uuid: eeaeb11a68d944bdb41498d086190765
-                  expression: 'last(/Proxmox VE by HTTP/pve.ct.uptime[{#VMID}])<600'
-                  name: 'PVE Ct {#VMID} - {#NAME} uptime < 10m'
-                  priority: WARNING
-                  description: 'Container uptime is < 600s'
-                  dependencies:
-                    -
-                      name: 'PVE Ct {#VMID} - {#NAME} is not running'
-                      expression: 'find(/Proxmox VE by HTTP/pve.ct.status[{#VMID}],,,"running")=0'
-            -
-              uuid: 6d8878433f5a4602aacd61fbc43eb14e
-              name: 'PVE Ct {#VMID} - {#NAME}'
-              type: HTTP_AGENT
-              key: 'pve.ct[{#VMID}]'
-              history: 1d
-              trends: '0'
-              value_type: TEXT
-              description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/lxc/{#VMID}/status/current` HTTP Query'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.data
-              timeout: 10s
-              url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/lxc/{#VMID}/status/current'
-              headers:
-                -
-                  name: Authorization
-                  value: 'PVEAPIToken={$PVE_API_TOKEN}'
-          graph_prototypes:
-            -
-              uuid: 20d46c6dfe1f4b85aaf85f56fa9df271
-              name: 'PVE Ct {#VMID} - {#NAME} CPU usage'
-              graph_items:
-                -
-                  sortorder: '1'
-                  color: 199C0D
-                  item:
-                    host: 'Proxmox VE by HTTP'
-                    key: 'pve.ct.cpu[{#VMID}]'
-            -
-              uuid: 350fdbbf2ad042929e193a48b752d5d1
-              name: 'PVE Ct {#VMID} - {#NAME} disk usage'
-              graph_items:
-                -
-                  sortorder: '1'
-                  color: 199C0D
-                  item:
-                    host: 'Proxmox VE by HTTP'
-                    key: 'pve.ct.maxdisk[{#VMID}]'
-                -
-                  sortorder: '2'
-                  drawtype: FILLED_REGION
-                  color: F63100
-                  item:
-                    host: 'Proxmox VE by HTTP'
-                    key: 'pve.ct.disk[{#VMID}]'
-            -
-              uuid: 0c32a59ec9094f07a4ef2f13c5d8b533
-              name: 'PVE Ct {#VMID} - {#NAME} RAM usage'
-              graph_items:
-                -
-                  sortorder: '1'
-                  color: 199C0D
-                  item:
-                    host: 'Proxmox VE by HTTP'
-                    key: 'pve.ct.maxmem[{#VMID}]'
-                -
-                  sortorder: '2'
-                  drawtype: FILLED_REGION
-                  color: F63100
-                  item:
-                    host: 'Proxmox VE by HTTP'
-                    key: 'pve.ct.mem[{#VMID}]'
-            -
-              uuid: 8d2de0b2525b4c42865e57da3e0a73d3
-              name: 'PVE Ct {#VMID} - {#NAME} SWAP usage'
-              graph_items:
-                -
-                  sortorder: '1'
-                  color: 199C0D
-                  item:
-                    host: 'Proxmox VE by HTTP'
-                    key: 'pve.ct.maxswap[{#VMID}]'
-                -
-                  sortorder: '2'
-                  drawtype: FILLED_REGION
-                  color: F63100
-                  item:
-                    host: 'Proxmox VE by HTTP'
-                    key: 'pve.ct.swap[{#VMID}]'
-          host_prototypes:
-            -
-              uuid: 65cb8b301d78467ba1142b9e095672cb
-              host: '{#NAME}'
-              name: 'PVE Ct {#VMID} - {#NAME}'
-              status: DISABLED
-              discover: NO_DISCOVER
-              group_links:
-                -
-                  group:
-                    name: 'Discovered hosts'
-              group_prototypes:
-                -
-                  name: '{#NODE} Containers'
-              inventory_mode: AUTOMATIC
-          url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/'
-          headers:
-            -
-              name: Authorization
-              value: 'PVEAPIToken={$PVE_API_TOKEN}'
-          lld_macro_paths:
-            -
-              lld_macro: '{#NAME}'
-              path: '$.[''name'']'
-            -
-              lld_macro: '{#NODE}'
-              path: '$.[''node'']'
-            -
-              lld_macro: '{#TYPE}'
-              path: '$.[''type'']'
-            -
-              lld_macro: '{#VMID}'
-              path: '$.[''vmid'']'
-          preprocessing:
-            -
-              type: JSONPATH
-              parameters:
-                - $.data
-        -
-          uuid: 9d08d64e298340b08ec08bd694980421
-          name: 'PVE API Resources - qemu'
-          type: HTTP_AGENT
-          key: pve.cluster.resources.qemu
-          delay: 10m
-          filter:
-            conditions:
-              -
-                macro: '{#TYPE}'
-                value: ^qemu$
-                formulaid: A
-          description: 'Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs'
-          item_prototypes:
-            -
-              uuid: 004ca8fbe58e45d781e27262ea92f449
-              name: 'PVE Vm {#VMID} - {#NAME} cpu usage'
-              type: DEPENDENT
-              key: 'pve.vm.cpu[{#VMID}]'
-              delay: '0'
-              value_type: FLOAT
-              units: '%'
-              description: 'VM CPU Usage in %'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.cpu
-                -
-                  type: MULTIPLIER
-                  parameters:
-                    - '100'
-              master_item:
-                key: 'pve.vm[{#VMID}]'
-              trigger_prototypes:
-                -
-                  uuid: fd6b87ea220b4a828f01d5bf9c6cb617
-                  expression: 'last(/Proxmox VE by HTTP/pve.vm.cpu[{#VMID}])>80'
-                  name: 'PVE Vm {#VMID} - {#NAME} high CPU usage'
-                  priority: WARNING
-                  description: 'VM CPU usage > 80%'
-            -
-              uuid: 31aeb70e1522428bad9a30a512bd7eee
-              name: 'PVE Vm {#VMID} - {#NAME} status'
-              type: DEPENDENT
-              key: 'pve.vm.status[{#VMID}]'
-              delay: '0'
-              trends: '0'
-              value_type: TEXT
-              description: 'String, current VM state'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.status
-              master_item:
-                key: 'pve.vm[{#VMID}]'
-              trigger_prototypes:
-                -
-                  uuid: 3f3c7104e2bd4031b01ef0876d4a3b8b
-                  expression: 'find(/Proxmox VE by HTTP/pve.vm.status[{#VMID}],,,"running")=0'
-                  name: 'PVE Vm {#VMID} - {#NAME} is not running'
-                  priority: WARNING
-                  description: 'VM state is not "running"'
-                  manual_close: 'YES'
-            -
-              uuid: a32890cceec246b78668057d4368d594
-              name: 'PVE Vm {#VMID} - {#NAME} uptime'
-              type: DEPENDENT
-              key: 'pve.vm.uptime[{#VMID}]'
-              delay: '0'
-              units: s
-              description: 'VM uptime in seconds'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.uptime
-              master_item:
-                key: 'pve.vm[{#VMID}]'
-              trigger_prototypes:
-                -
-                  uuid: 938089eccf3a43ab87a42eed38ed507f
-                  expression: 'last(/Proxmox VE by HTTP/pve.vm.uptime[{#VMID}])<600'
-                  name: 'PVE Vm {#VMID} - {#NAME} uptime < 10m'
-                  priority: WARNING
-                  description: 'VM uptime is < 600s'
-                  manual_close: 'YES'
-                  dependencies:
-                    -
-                      name: 'PVE Vm {#VMID} - {#NAME} is not running'
-                      expression: 'find(/Proxmox VE by HTTP/pve.vm.status[{#VMID}],,,"running")=0'
-            -
-              uuid: 9e8d7c7b4440438086876cfc9b94de9c
-              name: 'PVE Vm {#VMID} - {#NAME}'
-              type: HTTP_AGENT
-              key: 'pve.vm[{#VMID}]'
-              history: 1d
-              trends: '0'
-              value_type: TEXT
-              description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/qemu/{#VMID}/status/current` HTTP Query'
-              preprocessing:
-                -
-                  type: JSONPATH
-                  parameters:
-                    - $.data
-              timeout: 10s
-              url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/qemu/{#VMID}/status/current'
-              headers:
-                -
-                  name: Authorization
-                  value: 'PVEAPIToken={$PVE_API_TOKEN}'
-          graph_prototypes:
-            -
-              uuid: 2c3409a576c8455eb72e17bae1326268
-              name: 'PVE Vm {#VMID} - {#NAME} CPU usage'
-              graph_items:
-                -
-                  sortorder: '1'
-                  color: 199C0D
-                  item:
-                    host: 'Proxmox VE by HTTP'
-                    key: 'pve.vm.cpu[{#VMID}]'
-          host_prototypes:
-            -
-              uuid: 706ca1aa49be4d29a4b48baadcb36021
-              host: '{#NAME}'
-              name: 'PVE Vm {#VMID} - {#NAME}'
-              status: DISABLED
-              discover: NO_DISCOVER
-              group_links:
-                -
-                  group:
-                    name: 'Discovered hosts'
-              group_prototypes:
-                -
-                  name: '{#NODE} Vms'
-              inventory_mode: AUTOMATIC
-          url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/'
-          headers:
-            -
-              name: Authorization
-              value: 'PVEAPIToken={$PVE_API_TOKEN}'
-          lld_macro_paths:
-            -
-              lld_macro: '{#NODE}'
-              path: '$.[''node'']'
-            -
-              lld_macro: '{#TYPE}'
-              path: '$.[''type'']'
-            -
-              lld_macro: '{#VMID}'
-              path: '$.[''vmid'']'
-            -
-              lld_macro: '{#NAME}'
-              path: '$.[''name'']'
-          preprocessing:
-            -
-              type: JSONPATH
-              parameters:
-                - $.data
         -
           uuid: 6d58027a895240a0b95759822b899949
           name: 'PVE API Resources - storage'
-          type: HTTP_AGENT
-          key: pve.cluster.resources.storage
-          delay: 10m
+          type: DEPENDENT
+          key: pve.storage
+          delay: '0'
           filter:
             conditions:
               -
                 macro: '{#TYPE}'
                 value: ^storage$
                 formulaid: A
-          description: 'Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs'
+          description: 'Filter pve.cluster.resources and creates items, triggers and graphs'
           item_prototypes:
             -
               uuid: d50ea430c1134107b23aa67e2363fba0
@@ -1356,11 +1209,8 @@ zabbix_export:
                   item:
                     host: 'Proxmox VE by HTTP'
                     key: 'pve.storage.used[{#NODE}, {#NAME}]'
-          url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/'
-          headers:
-            -
-              name: Authorization
-              value: 'PVEAPIToken={$PVE_API_TOKEN}'
+          master_item:
+            key: pve.cluster.resources
           lld_macro_paths:
             -
               lld_macro: '{#NAME}'
@@ -1371,11 +1221,158 @@ zabbix_export:
             -
               lld_macro: '{#TYPE}'
               path: '$.[''type'']'
-          preprocessing:
+        -
+          uuid: 9d08d64e298340b08ec08bd694980421
+          name: 'PVE API Resources - qemu'
+          type: DEPENDENT
+          key: pve.vm
+          delay: '0'
+          filter:
+            conditions:
+              -
+                macro: '{#TYPE}'
+                value: ^qemu$
+                formulaid: A
+          description: 'Filter pve.cluster.resources and creates items, triggers and graphs'
+          item_prototypes:
             -
-              type: JSONPATH
-              parameters:
-                - $.data
+              uuid: 004ca8fbe58e45d781e27262ea92f449
+              name: 'PVE Vm {#VMID} - {#NAME} cpu usage'
+              type: DEPENDENT
+              key: 'pve.vm.cpu[{#VMID}]'
+              delay: '0'
+              value_type: FLOAT
+              units: '%'
+              description: 'VM CPU Usage in %'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.cpu
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '100'
+              master_item:
+                key: 'pve.vm[{#VMID}]'
+              trigger_prototypes:
+                -
+                  uuid: fd6b87ea220b4a828f01d5bf9c6cb617
+                  expression: 'last(/Proxmox VE by HTTP/pve.vm.cpu[{#VMID}])>80'
+                  name: 'PVE Vm {#VMID} - {#NAME} high CPU usage'
+                  priority: WARNING
+                  description: 'VM CPU usage > 80%'
+            -
+              uuid: 31aeb70e1522428bad9a30a512bd7eee
+              name: 'PVE Vm {#VMID} - {#NAME} status'
+              type: DEPENDENT
+              key: 'pve.vm.status[{#VMID}]'
+              delay: '0'
+              trends: '0'
+              value_type: TEXT
+              description: 'String, current VM state'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.status
+              master_item:
+                key: 'pve.vm[{#VMID}]'
+              trigger_prototypes:
+                -
+                  uuid: 3f3c7104e2bd4031b01ef0876d4a3b8b
+                  expression: 'find(/Proxmox VE by HTTP/pve.vm.status[{#VMID}],,,"running")=0'
+                  name: 'PVE Vm {#VMID} - {#NAME} is not running'
+                  priority: WARNING
+                  description: 'VM state is not "running"'
+                  manual_close: 'YES'
+            -
+              uuid: a32890cceec246b78668057d4368d594
+              name: 'PVE Vm {#VMID} - {#NAME} uptime'
+              type: DEPENDENT
+              key: 'pve.vm.uptime[{#VMID}]'
+              delay: '0'
+              units: s
+              description: 'VM uptime in seconds'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.uptime
+              master_item:
+                key: 'pve.vm[{#VMID}]'
+              trigger_prototypes:
+                -
+                  uuid: 938089eccf3a43ab87a42eed38ed507f
+                  expression: 'last(/Proxmox VE by HTTP/pve.vm.uptime[{#VMID}])<600'
+                  name: 'PVE Vm {#VMID} - {#NAME} uptime < 10m'
+                  priority: WARNING
+                  description: 'VM uptime is < 600s'
+                  manual_close: 'YES'
+                  dependencies:
+                    -
+                      name: 'PVE Vm {#VMID} - {#NAME} is not running'
+                      expression: 'find(/Proxmox VE by HTTP/pve.vm.status[{#VMID}],,,"running")=0'
+            -
+              uuid: 9e8d7c7b4440438086876cfc9b94de9c
+              name: 'PVE Vm {#VMID} - {#NAME}'
+              type: HTTP_AGENT
+              key: 'pve.vm[{#VMID}]'
+              history: 1d
+              trends: '0'
+              value_type: TEXT
+              description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/qemu/{#VMID}/status/current` HTTP Query'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.data
+              timeout: 10s
+              url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/qemu/{#VMID}/status/current'
+              headers:
+                -
+                  name: Authorization
+                  value: 'PVEAPIToken={$PVE_API_TOKEN}'
+          graph_prototypes:
+            -
+              uuid: 2c3409a576c8455eb72e17bae1326268
+              name: 'PVE Vm {#VMID} - {#NAME} CPU usage'
+              graph_items:
+                -
+                  sortorder: '1'
+                  color: 199C0D
+                  item:
+                    host: 'Proxmox VE by HTTP'
+                    key: 'pve.vm.cpu[{#VMID}]'
+          host_prototypes:
+            -
+              uuid: 706ca1aa49be4d29a4b48baadcb36021
+              host: '{#NAME}'
+              name: 'PVE Vm {#VMID} - {#NAME}'
+              status: DISABLED
+              discover: NO_DISCOVER
+              group_links:
+                -
+                  group:
+                    name: 'Discovered hosts'
+              group_prototypes:
+                -
+                  name: '{#NODE} Vms'
+          master_item:
+            key: pve.cluster.resources
+          lld_macro_paths:
+            -
+              lld_macro: '{#NODE}'
+              path: '$.[''node'']'
+            -
+              lld_macro: '{#TYPE}'
+              path: '$.[''type'']'
+            -
+              lld_macro: '{#VMID}'
+              path: '$.[''vmid'']'
+            -
+              lld_macro: '{#NAME}'
+              path: '$.[''name'']'
       macros:
         -
           macro: '{$PVE_API_HOST}'

@@ -56,12 +56,14 @@ You will see "Token ID" (example - `root@pam!monitoring`) and "Secret" (some UUI
 
 ## Items
 
-| Item                              | Description                                                                                                              | Example                                                                                            |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| PVE Log - Warnings                | JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` HTTP Query, filtered by pri < 4 |                                                                                                    |
-| PVE Log - Warnings - Last         | Last warning JSON in logs                                                                                                |                                                                                                    |
-| PVE Log - Warnings - Last message | Last warning message in logs                                                                                             | `end task UPID:ns514098:00094DAC:07019DD0:61A73310:vncproxy:903:root@pam: Failed to run vncproxy.` |
-| PVE Log - Warnings - Last time    | Time of last warning message in logs                                                                                     | `2021-12-01 08:32:17`                                                                              |
+| Item                                                              | Description                                                                                                              | Example                                                                                            |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| PVE Log - Warnings                                                | JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` HTTP Query, filtered by pri < 4 |                                                                                                    |
+| PVE Log - Warnings - Last                                         | Last warning JSON in logs                                                                                                |                                                                                                    |
+| PVE Log - Warnings - Last message                                 | Last warning message in logs                                                                                             | `end task UPID:ns514098:00094DAC:07019DD0:61A73310:vncproxy:903:root@pam: Failed to run vncproxy.` |
+| PVE Log - Warnings - Last time                                    | Time of last warning message in logs                                                                                     | `2021-12-01 08:32:17`                                                                              |
+| PVE API Cluster resources                                         | Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/`  for autodiscovery                           |                                                                                                    |
+| https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/ | Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/` for autodiscovery                               |                                                                                                    |
 
 ## Triggers
 
@@ -73,7 +75,7 @@ You will see "Token ID" (example - `root@pam!monitoring`) and "Secret" (some UUI
 
 ### PVE API resources - cluster
 
-Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then creates items and triggers
+Filter `pve.cluster.resources` and creates items, triggers and graphs
 
 #### Cluster items
 
@@ -92,7 +94,7 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then c
 
 ### PVE API resources - node
 
-Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then creates items, triggers and graphs
+Filter `pve.cluster.status` and creates items, triggers and graphs
 
 #### Node items
 
@@ -142,7 +144,7 @@ Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/`, then c
 
 ### PVE API Resources - qemu
 
-Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers, graphs and hosts
+Filter `pve.cluster.resources` and creates items, triggers and graphs
 
 #### Qemu items
 
@@ -177,7 +179,7 @@ Host creation is disabled by default!
 
 ### PVE API Resources - lxc
 
-Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers, graphs and hosts
+Filter `pve.cluster.resources` and creates items, triggers and graphs
 
 #### LXC items
 
@@ -230,7 +232,7 @@ Host creation is disabled by default!
 
 ### PVE API Resources - storage
 
-Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` and creates items, triggers and graphs
+Filter `pve.cluster.resources` and creates items, triggers and graphs
 
 #### Storage items
 
