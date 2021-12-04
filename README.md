@@ -1,6 +1,7 @@
 # Proxmox VE by HTTP
 
 - [Proxmox VE by HTTP](#proxmox-ve-by-http)
+  - [Todos](#todos)
   - [Usage](#usage)
   - [Macroses](#macroses)
   - [Items](#items)
@@ -31,6 +32,14 @@
 Monitors PVE VMs and nodes by PVE HTTP API
 
 Tested on Zabbix 5.4.7 and PVE 7.1
+
+Port to Zabbix 5.0 in progress!
+
+## Todos
+
+- [ ] Port to Zabbix 5.0
+- [ ] Add update monitoring
+- [ ] Add PBS monitoring (maybe...)
 
 ## Usage
 

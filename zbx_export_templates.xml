@@ -1,0 +1,917 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>5.0</version>
+    <date>2021-12-04T20:56:59Z</date>
+    <groups>
+        <group>
+            <name>Discovered hosts</name>
+        </group>
+        <group>
+            <name>Templates/Operating systems</name>
+        </group>
+        <group>
+            <name>Templates/Virtualization</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Proxmox VE by HTTP</template>
+            <name>Proxmox VE by HTTP</name>
+            <description># Proxmox VE by HTTP&#13;
+&#13;
+Monitors PVE VMs and nodes by PVE HTTP API&#13;
+&#13;
+Tested on Zabbix 5.4.7 and PVE 7.1&#13;
+&#13;
+## Usage&#13;
+&#13;
+- Go to PVE WEB UI -&gt; Datacenter -&gt; Api Tokens&#13;
+- Click &quot;Add&quot;&#13;
+- Select User (usualy - `root@pam`)&#13;
+- Enter Token ID (for example - `monitoring`)&#13;
+- **Uncheck &quot;Privelege separation&quot;**&#13;
+- Click &quot;Add&quot;&#13;
+&#13;
+You will see &quot;Token ID&quot; (example - `root@pam!monitoring`) and &quot;Secret&quot; (some UUID). Save &quot;Secret&quot; value, because you can't display it again!&#13;
+&#13;
+- Import template into Zabbix&#13;
+- Attach template to any server you want, and fill macroses (described below)&#13;
+&#13;
+## Macroses&#13;
+&#13;
+| Macro              | Description        | Example                                                    |&#13;
+| ------------------ | ------------------ | ---------------------------------------------------------- |&#13;
+| `{$PVE_API_HOST}`  | PVE web UI address | `pve.example.org`                                          |&#13;
+| `{$PVE_API_PORT}`  | PVE web UI Port    | `8006`                                                     |&#13;
+| `{$PVE_API_TOKEN}` | PVE API Token      | `root@pam!monitoring=69ab8098-f2aa-455c-add3-e387aef0a47e` |</description>
+            <groups>
+                <group>
+                    <name>Templates/Operating systems</name>
+                </group>
+                <group>
+                    <name>Templates/Virtualization</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>PVE API</name>
+                </application>
+                <application>
+                    <name>PVE Cluster</name>
+                </application>
+                <application>
+                    <name>PVE Ct</name>
+                </application>
+                <application>
+                    <name>PVE Log</name>
+                </application>
+                <application>
+                    <name>PVE Node</name>
+                </application>
+                <application>
+                    <name>PVE Vm</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>PVE API Cluster resources</name>
+                    <type>HTTP_AGENT</type>
+                    <key>pve.cluster.resources</key>
+                    <delay>10m</delay>
+                    <history>1d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <description>Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/`  for autodiscovery</description>
+                    <applications>
+                        <application>
+                            <name>PVE API</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <params>$.data</params>
+                        </step>
+                    </preprocessing>
+                    <timeout>10s</timeout>
+                    <url>https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/</url>
+                    <headers>
+                        <header>
+                            <name>Authorization</name>
+                            <value>PVEAPIToken={$PVE_API_TOKEN}</value>
+                        </header>
+                    </headers>
+                </item>
+                <item>
+                    <name>PVE API Cluster status</name>
+                    <type>HTTP_AGENT</type>
+                    <key>pve.cluster.status</key>
+                    <delay>10m</delay>
+                    <history>1d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <description>Gets `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/` for autodiscovery</description>
+                    <applications>
+                        <application>
+                            <name>PVE API</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <params>$.data</params>
+                        </step>
+                    </preprocessing>
+                    <timeout>10s</timeout>
+                    <url>https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/</url>
+                    <headers>
+                        <header>
+                            <name>Authorization</name>
+                            <value>PVEAPIToken={$PVE_API_TOKEN}</value>
+                        </header>
+                    </headers>
+                </item>
+                <item>
+                    <name>PVE API Log warnings</name>
+                    <type>HTTP_AGENT</type>
+                    <key>pve.log</key>
+                    <delay>10m</delay>
+                    <history>1d</history>
+                    <trends>0</trends>
+                    <value_type>LOG</value_type>
+                    <description>JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` HTTP Query, filtered by pri &lt; 4</description>
+                    <applications>
+                        <application>
+                            <name>PVE API</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <params>$.data</params>
+                        </step>
+                        <step>
+                            <type>JSONPATH</type>
+                            <params>$.[?(@.pri &lt; 4)]</params>
+                        </step>
+                    </preprocessing>
+                    <timeout>10s</timeout>
+                    <url>https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/log</url>
+                    <headers>
+                        <header>
+                            <name>Authorization</name>
+                            <value>PVEAPIToken={$PVE_API_TOKEN}</value>
+                        </header>
+                    </headers>
+                </item>
+                <item>
+                    <name>PVE Log - Warnings - Last</name>
+                    <type>DEPENDENT</type>
+                    <key>pve.log.last</key>
+                    <delay>0</delay>
+                    <history>1d</history>
+                    <trends>0</trends>
+                    <value_type>LOG</value_type>
+                    <description>Last warning JSON in logs</description>
+                    <applications>
+                        <application>
+                            <name>PVE Log</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <params>$.[0]</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>pve.log</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>PVE Log - Warnings - Last message</name>
+                    <type>DEPENDENT</type>
+                    <key>pve.log.last.message</key>
+                    <delay>0</delay>
+                    <history>10d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <description>Last warning message in logs</description>
+                    <applications>
+                        <application>
+                            <name>PVE Log</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <params>$.msg</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>pve.log.last</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>PVE Log - Warnings - Last time</name>
+                    <type>DEPENDENT</type>
+                    <key>pve.log.last.time</key>
+                    <delay>0</delay>
+                    <history>10d</history>
+                    <trends>0</trends>
+                    <units>unixtime</units>
+                    <description>Time of last warning message in logs</description>
+                    <applications>
+                        <application>
+                            <name>PVE Log</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <params>$.time</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>pve.log.last</key>
+                    </master_item>
+                </item>
+            </items>
+            <discovery_rules>
+                <discovery_rule>
+                    <name>PVE API Resources - cluster</name>
+                    <type>DEPENDENT</type>
+                    <key>pve.cluster</key>
+                    <delay>0</delay>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#TYPE}</macro>
+                                <value>^cluster$</value>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <description>Filter pve.cluster.resources and creates items, triggers and graphs</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>PVE Cluster {#NAME} nodes</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.cluster.nodes[{#NAME}]</key>
+                            <delay>0</delay>
+                            <description>Cluster node count</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Cluster</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.quorate</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.cluster[{#NAME}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{change()}&lt;&gt;0</expression>
+                                    <recovery_mode>NONE</recovery_mode>
+                                    <name>PVE Cluster {#NAME} node count changed</name>
+                                    <priority>INFO</priority>
+                                    <description>Node count was changed since last check</description>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Cluster {#NAME} quorum</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.cluster.quorum[{#NAME}]</key>
+                            <delay>0</delay>
+                            <description>If 1 - Cluster in quorum</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Cluster</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.quorate</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.cluster[{#NAME}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&lt;&gt;1</expression>
+                                    <name>PVE Cluster {#NAME} not in quorum</name>
+                                    <priority>HIGH</priority>
+                                    <description>Cluster not in quorum</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Cluster {#NAME} status</name>
+                            <type>HTTP_AGENT</type>
+                            <key>pve.cluster[{#NAME}]</key>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <description>JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/resources/` HTTP Query</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Cluster</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.data.[?(@.name == '{#NAME}')].first()</params>
+                                </step>
+                            </preprocessing>
+                            <timeout>10s</timeout>
+                            <url>https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/cluster/status/</url>
+                            <headers>
+                                <header>
+                                    <name>Authorization</name>
+                                    <value>PVEAPIToken={$PVE_API_TOKEN}</value>
+                                </header>
+                            </headers>
+                        </item_prototype>
+                    </item_prototypes>
+                    <master_item>
+                        <key>pve.cluster.resources</key>
+                    </master_item>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#NAME}</lld_macro>
+                            <path>$.['name']</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#TYPE}</lld_macro>
+                            <path>$.['type']</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>PVE API Resources - lxc</name>
+                    <type>DEPENDENT</type>
+                    <key>pve.ct</key>
+                    <delay>0</delay>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#TYPE}</macro>
+                                <value>^lxc$</value>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <description>Filter pve.cluster.resources and creates items, triggers and graphs</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} cpu usage</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.ct.cpu[{#VMID}]</key>
+                            <delay>0</delay>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <description>Container CPU Usage in %</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Ct</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.cpu</params>
+                                </step>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>100</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.ct[{#VMID}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;80</expression>
+                                    <name>PVE Ct {#VMID} - {#NAME} high CPU usage</name>
+                                    <priority>WARNING</priority>
+                                    <description>Container CPU usage &gt; 80%</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} disk usage</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.ct.disk[{#VMID}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Container disk usage in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Ct</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.disk</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.ct[{#VMID}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} disk size</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.ct.maxdisk[{#VMID}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Container disk size in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Ct</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.maxdisk</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.ct[{#VMID}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} memory size</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.ct.maxmem[{#VMID}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Container RAM size in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Ct</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.maxmem</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.ct[{#VMID}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} swap size</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.ct.maxswap[{#VMID}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Container SWAP size in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Ct</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.maxswap</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.ct[{#VMID}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} memory usage</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.ct.mem[{#VMID}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Container RAM usage in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Ct</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.mem</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.ct[{#VMID}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} disk usage in %</name>
+                            <type>CALCULATED</type>
+                            <key>pve.ct.pdisk[{#VMID}]</key>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <params>last(pve.ct.disk[{#VMID}])/last(pve.ct.maxdisk[{#VMID}])</params>
+                            <description>Container SWAP usage in %</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Ct</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>100</params>
+                                </step>
+                            </preprocessing>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;80</expression>
+                                    <name>PVE Ct {#VMID} - {#NAME} disk usage &gt; 80%</name>
+                                    <priority>WARNING</priority>
+                                    <description>Container disk usage &gt; 80%</description>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>PVE Ct {#VMID} - {#NAME} disk usage &gt; 90%</name>
+                                            <expression>{Proxmox VE by HTTP:pve.ct.pdisk[{#VMID}].last()}&gt;90</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;90</expression>
+                                    <name>PVE Ct {#VMID} - {#NAME} disk usage &gt; 90%</name>
+                                    <priority>HIGH</priority>
+                                    <description>Container disk usage &gt; 90%</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} memory usage in %</name>
+                            <type>CALCULATED</type>
+                            <key>pve.ct.pmem[{#VMID}]</key>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <params>last(pve.ct.mem[{#VMID}])/last(pve.ct.maxmem[{#VMID}])</params>
+                            <description>Container RAM usage in %</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Ct</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>100</params>
+                                </step>
+                            </preprocessing>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;80</expression>
+                                    <name>PVE Ct {#VMID} - {#NAME} RAM usage &gt; 80%</name>
+                                    <priority>WARNING</priority>
+                                    <description>Container RAM usage &gt; 80%</description>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>PVE Ct {#VMID} - {#NAME} RAM usage &gt; 90%</name>
+                                            <expression>{Proxmox VE by HTTP:pve.ct.pmem[{#VMID}].last()}&gt;90</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;90</expression>
+                                    <name>PVE Ct {#VMID} - {#NAME} RAM usage &gt; 90%</name>
+                                    <priority>HIGH</priority>
+                                    <description>Container RAM usage &gt; 90%</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} SWAP usage in %</name>
+                            <type>CALCULATED</type>
+                            <key>pve.ct.pswap[{#VMID}]</key>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <params>last(pve.ct.swap[{#VMID}])/last(pve.ct.maxswap[{#VMID}])</params>
+                            <description>Container SWAP usage in %</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Ct</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>100</params>
+                                </step>
+                            </preprocessing>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;80</expression>
+                                    <name>PVE Ct {#VMID} - {#NAME} SWAP usage &gt; 80%</name>
+                                    <priority>WARNING</priority>
+                                    <description>Container SWAP usage &gt; 80%</description>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>PVE Ct {#VMID} - {#NAME} SWAP usage &gt; 90%</name>
+                                            <expression>{Proxmox VE by HTTP:pve.ct.pswap[{#VMID}].last()}&gt;90</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;90</expression>
+                                    <name>PVE Ct {#VMID} - {#NAME} SWAP usage &gt; 90%</name>
+                                    <priority>HIGH</priority>
+                                    <description>Container SWAP usage &gt; 90%</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} status</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.ct.status[{#VMID}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <description>String, current container state</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Ct</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.status</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.ct[{#VMID}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{iregexp(running)}=0</expression>
+                                    <name>PVE Ct {#VMID} - {#NAME} is not running</name>
+                                    <priority>WARNING</priority>
+                                    <description>Container state is not &quot;running&quot;</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} swap usage</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.ct.swap[{#VMID}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Container SWAP usage in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Ct</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.swap</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.ct[{#VMID}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} uptime</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.ct.uptime[{#VMID}]</key>
+                            <delay>0</delay>
+                            <units>s</units>
+                            <description>Container uptime in seconds</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Ct</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.uptime</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.ct[{#VMID}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&lt;600</expression>
+                                    <name>PVE Ct {#VMID} - {#NAME} uptime &lt; 10m</name>
+                                    <priority>WARNING</priority>
+                                    <description>Container uptime is &lt; 600s</description>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>PVE Ct {#VMID} - {#NAME} is not running</name>
+                                            <expression>{Proxmox VE by HTTP:pve.ct.status[{#VMID}].iregexp(running)}=0</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME}</name>
+                            <type>HTTP_AGENT</type>
+                            <key>pve.ct[{#VMID}]</key>
+                            <history>1d</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <description>JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/lxc/{#VMID}/status/current` HTTP Query</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Ct</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.data</params>
+                                </step>
+                            </preprocessing>
+                            <timeout>10s</timeout>
+                            <url>https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/lxc/{#VMID}/status/current</url>
+                            <headers>
+                                <header>
+                                    <name>Authorization</name>
+                                    <value>PVEAPIToken={$PVE_API_TOKEN}</value>
+                                </header>
+                            </headers>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} CPU usage</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.ct.cpu[{#VMID}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                        <graph_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} disk usage</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.ct.maxdisk[{#VMID}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>FILLED_REGION</drawtype>
+                                    <color>F63100</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.ct.disk[{#VMID}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                        <graph_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} RAM usage</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.ct.maxmem[{#VMID}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>FILLED_REGION</drawtype>
+                                    <color>F63100</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.ct.mem[{#VMID}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                        <graph_prototype>
+                            <name>PVE Ct {#VMID} - {#NAME} SWAP usage</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.ct.maxswap[{#VMID}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>BOLD_LINE</drawtype>
+                                    <color>F63100</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.ct.swap[{#VMID}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                    <host_prototypes>
+                        <host_prototype>
+                            <host>{#NAME}</host>
+                            <name>PVE Ct {#VMID} - {#NAME}</name>
+                            <status>DISABLED</status>
+                            <discover>NO_DISCOVER</discover>
+                            <group_links>
+                                <group_link>
+                                    <group>
+                                        <name>Discovered hosts</name>
+                                    </group>
+                                </group_link>
+                            </group_links>
+                            <group_prototypes>
+                                <group_prototype>
+                                    <name>{#NODE} Containers</name>
+                                </group_prototype>
+                            </group_prototypes>
+                        </host_prototype>
+                    </host_prototypes>
+                    <master_item>
+                        <key>pve.cluster.resources</key>
+                    </master_item>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#NAME}</lld_macro>
+                            <path>$.['name']</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#NODE}</lld_macro>
+                            <path>$.['node']</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#TYPE}</lld_macro>
+                            <path>$.['type']</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#VMID}</lld_macro>
+                            <path>$.['vmid']</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                </discovery_rule>
+            </discovery_rules>
+            <macros>
+                <macro>
+                    <macro>{$PVE_API_HOST}</macro>
+                    <value>{HOST.NAME}</value>
+                    <description>PVE web UI address. Default: {HOST.NAME}</description>
+                </macro>
+                <macro>
+                    <macro>{$PVE_API_PORT}</macro>
+                    <value>8006</value>
+                    <description>PVE web UI Port. Default: 8006</description>
+                </macro>
+                <macro>
+                    <macro>{$PVE_API_TOKEN}</macro>
+                    <type>SECRET_TEXT</type>
+                    <description>PVE API Token. Example: root@pam!monitoring=69ab8098-f2aa-455c-add3-e387aef0a47e</description>
+                </macro>
+            </macros>
+        </template>
+    </templates>
+    <triggers>
+        <trigger>
+            <expression>{Proxmox VE by HTTP:pve.log.nodata(30m)}&lt;&gt;0 and {Proxmox VE by HTTP:pve.cluster.resources.nodata(30m)}&lt;&gt;0 and {Proxmox VE by HTTP:pve.cluster.status.nodata(30m)}&lt;&gt;0</expression>
+            <name>PVE API - No data last 30m</name>
+            <priority>HIGH</priority>
+            <description>No data from API last 30 m</description>
+        </trigger>
+        <trigger>
+            <expression>{Proxmox VE by HTTP:pve.log.last.message.change()}&lt;&gt;0 and {Proxmox VE by HTTP:pve.log.last.time.change()}&lt;&gt;0</expression>
+            <recovery_mode>NONE</recovery_mode>
+            <name>PVE Log Warnings - New warning</name>
+            <priority>WARNING</priority>
+            <description>New warning in PVE Log (**only manual close**)</description>
+            <manual_close>YES</manual_close>
+        </trigger>
+    </triggers>
+</zabbix_export>
