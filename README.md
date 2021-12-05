@@ -31,9 +31,7 @@
 
 Monitors PVE VMs and nodes by PVE HTTP API
 
-Tested on Zabbix 5.4.7 and PVE 7.1
-
-Port to Zabbix 5.0 in progress!
+Tested on Zabbix 5.0.18 and PVE 7.1
 
 ## Todos
 

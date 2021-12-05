@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.0</version>
-    <date>2021-12-05T08:53:37Z</date>
+    <date>2021-12-05T09:36:28Z</date>
     <groups>
         <group>
             <name>Discovered hosts</name>
@@ -21,7 +21,13 @@
 &#13;
 Monitors PVE VMs and nodes by PVE HTTP API&#13;
 &#13;
-Tested on Zabbix 5.4.7 and PVE 7.1&#13;
+Tested on Zabbix 5.0.18 and PVE 7.1&#13;
+&#13;
+## Todos&#13;
+&#13;
+- [ ] Port to Zabbix 5.0&#13;
+- [ ] Add update monitoring&#13;
+- [ ] Add PBS monitoring (maybe...)&#13;
 &#13;
 ## Usage&#13;
 &#13;
@@ -67,6 +73,9 @@ You will see &quot;Token ID&quot; (example - `root@pam!monitoring`) and &quot;Se
                 </application>
                 <application>
                     <name>PVE Node</name>
+                </application>
+                <application>
+                    <name>PVE Storage</name>
                 </application>
                 <application>
                     <name>PVE Vm</name>
@@ -1457,6 +1466,462 @@ You will see &quot;Token ID&quot; (example - `root@pam!monitoring`) and &quot;Se
                         <lld_macro_path>
                             <lld_macro>{#TYPE}</lld_macro>
                             <path>$['node']</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>PVE API Resources - storage</name>
+                    <type>DEPENDENT</type>
+                    <key>pve.storage</key>
+                    <delay>0</delay>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#TYPE}</macro>
+                                <value>^storage$</value>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <description>Filter pve.cluster.resources and creates items, triggers and graphs</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>PVE Storage {#NODE} - {#NAME} active</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.storage.active[{#NODE}, {#NAME}]</key>
+                            <delay>0</delay>
+                            <description>Storage is active if value is 1</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Storage</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.active</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.storage[{#NODE}, {#NAME}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Storage {#NODE} - {#NAME} available</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.storage.available[{#NODE}, {#NAME}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Available size in storage in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Storage</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.avail</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.storage[{#NODE}, {#NAME}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}=0</expression>
+                                    <name>PVE Storage {#NODE} - {#NAME} unavailable</name>
+                                    <priority>HIGH</priority>
+                                    <description>Storage is unavailable</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Storage {#NODE} - {#NAME} enabled</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.storage.enabled[{#NODE}, {#NAME}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Storage is enabled if value is 1</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Storage</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.enabled</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.storage[{#NODE}, {#NAME}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}=0</expression>
+                                    <name>PVE Storage {#NODE} - {#NAME} disabled</name>
+                                    <priority>HIGH</priority>
+                                    <description>Storage is disabled</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Storage {#NODE} - {#NAME} used in %</name>
+                            <type>CALCULATED</type>
+                            <key>pve.storage.pused[{#NODE}, {#NAME}]</key>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <params>last(pve.storage.used[{#NODE}, {#NAME}])/last(pve.storage.total[{#NODE}, {#NAME}])</params>
+                            <description>Used storage size in %</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Storage</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>100</params>
+                                </step>
+                            </preprocessing>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;80</expression>
+                                    <name>PVE Storage {#NODE} - {#NAME} used &gt; 80 %</name>
+                                    <priority>WARNING</priority>
+                                    <description>Storage usage &gt; 80%</description>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>PVE Storage {#NODE} - {#NAME} used &gt; 90 %</name>
+                                            <expression>{Proxmox VE by HTTP:pve.storage.pused[{#NODE}, {#NAME}].last()}&gt;90</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;90</expression>
+                                    <name>PVE Storage {#NODE} - {#NAME} used &gt; 90 %</name>
+                                    <priority>HIGH</priority>
+                                    <description>Storage usage &gt; 80%</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Storage {#NODE} - {#NAME} size</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.storage.total[{#NODE}, {#NAME}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Total size of storage in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Storage</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.total</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.storage[{#NODE}, {#NAME}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Storage {#NODE} - {#NAME} used</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.storage.used[{#NODE}, {#NAME}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Used storage size in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Storage</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.used</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.storage[{#NODE}, {#NAME}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Storage {#NODE} - {#NAME}</name>
+                            <type>HTTP_AGENT</type>
+                            <key>pve.storage[{#NODE}, {#NAME}]</key>
+                            <history>1d</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <description>JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/storage/{#NAME}/status` HTTP Query</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Storage</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.data</params>
+                                </step>
+                            </preprocessing>
+                            <timeout>10s</timeout>
+                            <url>https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/storage/{#NAME}/status</url>
+                            <headers>
+                                <header>
+                                    <name>Authorization</name>
+                                    <value>PVEAPIToken={$PVE_API_TOKEN}</value>
+                                </header>
+                            </headers>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>PVE Storage {#NODE} - {#NAME} usage</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.storage.total[{#NODE}, {#NAME}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>FILLED_REGION</drawtype>
+                                    <color>F63100</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.storage.used[{#NODE}, {#NAME}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                    <master_item>
+                        <key>pve.cluster.resources</key>
+                    </master_item>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#NAME}</lld_macro>
+                            <path>$.['storage']</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#NODE}</lld_macro>
+                            <path>$.['node']</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#TYPE}</lld_macro>
+                            <path>$.['type']</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>PVE API Resources - qemu</name>
+                    <type>DEPENDENT</type>
+                    <key>pve.vm</key>
+                    <delay>0</delay>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#TYPE}</macro>
+                                <value>^qemu$</value>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <description>Filter pve.cluster.resources and creates items, triggers and graphs</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>PVE Vm {#VMID} - {#NAME} cpu usage</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.vm.cpu[{#VMID}]</key>
+                            <delay>0</delay>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <description>VM CPU Usage in %</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Vm</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.cpu</params>
+                                </step>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>100</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.vm[{#VMID}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;80</expression>
+                                    <name>PVE Vm {#VMID} - {#NAME} high CPU usage</name>
+                                    <priority>WARNING</priority>
+                                    <description>VM CPU usage &gt; 80%</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Vm {#VMID} - {#NAME} status</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.vm.status[{#VMID}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <description>String, current VM state</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Vm</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.status</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.vm[{#VMID}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{iregexp(running)}=0</expression>
+                                    <name>PVE Vm {#VMID} - {#NAME} is not running</name>
+                                    <priority>WARNING</priority>
+                                    <description>VM state is not &quot;running&quot;</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Vm {#VMID} - {#NAME} uptime</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.vm.uptime[{#VMID}]</key>
+                            <delay>0</delay>
+                            <units>s</units>
+                            <description>VM uptime in seconds</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Vm</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.uptime</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.vm[{#VMID}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&lt;600</expression>
+                                    <name>PVE Vm {#VMID} - {#NAME} uptime &lt; 10m</name>
+                                    <priority>WARNING</priority>
+                                    <description>VM uptime is &lt; 600s</description>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>PVE Vm {#VMID} - {#NAME} is not running</name>
+                                            <expression>{Proxmox VE by HTTP:pve.vm.status[{#VMID}].iregexp(running)}=0</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Vm {#VMID} - {#NAME}</name>
+                            <type>HTTP_AGENT</type>
+                            <key>pve.vm[{#VMID}]</key>
+                            <history>1d</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <description>JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/qemu/{#VMID}/status/current` HTTP Query</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Vm</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.data</params>
+                                </step>
+                            </preprocessing>
+                            <timeout>10s</timeout>
+                            <url>https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/qemu/{#VMID}/status/current</url>
+                            <headers>
+                                <header>
+                                    <name>Authorization</name>
+                                    <value>PVEAPIToken={$PVE_API_TOKEN}</value>
+                                </header>
+                            </headers>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>PVE Vm {#VMID} - {#NAME} CPU usage</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.vm.cpu[{#VMID}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                    <host_prototypes>
+                        <host_prototype>
+                            <host>{#NAME}</host>
+                            <name>PVE Vm {#VMID} - {#NAME}</name>
+                            <status>DISABLED</status>
+                            <discover>NO_DISCOVER</discover>
+                            <group_links>
+                                <group_link>
+                                    <group>
+                                        <name>Discovered hosts</name>
+                                    </group>
+                                </group_link>
+                            </group_links>
+                            <group_prototypes>
+                                <group_prototype>
+                                    <name>{#NODE} Vms</name>
+                                </group_prototype>
+                            </group_prototypes>
+                        </host_prototype>
+                    </host_prototypes>
+                    <master_item>
+                        <key>pve.cluster.resources</key>
+                    </master_item>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#NAME}</lld_macro>
+                            <path>$.['name']</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#NODE}</lld_macro>
+                            <path>$.['node']</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#TYPE}</lld_macro>
+                            <path>$.['type']</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#VMID}</lld_macro>
+                            <path>$.['vmid']</path>
                         </lld_macro_path>
                     </lld_macro_paths>
                 </discovery_rule>
