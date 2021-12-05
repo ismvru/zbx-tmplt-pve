@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-12-02T07:27:16Z'
+  date: '2021-12-05T10:34:25Z'
   groups:
     -
       uuid: f2481361f99448eea617b7b1d4765566
@@ -921,6 +921,32 @@ zabbix_export:
                     - $.swap.used
               master_item:
                 key: 'pve.nodes[{#NODE}]'
+            -
+              uuid: eb7c74f87bb54d9e9db56df78763358f
+              name: 'PVE Node {#NODE} updated packages'
+              type: HTTP_AGENT
+              key: 'pve.nodes.update[{#NODE}]'
+              trends: '0'
+              value_type: TEXT
+              description: 'JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/apt/update` HTTP Query'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.data
+              timeout: 10s
+              url: 'https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/apt/update'
+              headers:
+                -
+                  name: Authorization
+                  value: 'PVEAPIToken={$PVE_API_TOKEN}'
+              trigger_prototypes:
+                -
+                  uuid: 8ec3d22f08ec4bf999d4e0567dc27ef7
+                  expression: 'change(/Proxmox VE by HTTP/pve.nodes.update[{#NODE}])<>0 and find(/Proxmox VE by HTTP/pve.nodes.update[{#NODE}],,,"[]")<>1'
+                  name: 'PVE Node {#NODE} has updates'
+                  priority: INFO
+                  description: 'PVE Node {#NODE} has updates'
             -
               uuid: 1b1c0014023d4f0ea4a84dfc2a9ea411
               name: 'PVE Node {#NODE} uptime'

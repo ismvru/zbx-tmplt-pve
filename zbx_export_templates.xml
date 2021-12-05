@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.0</version>
-    <date>2021-12-05T09:37:16Z</date>
+    <date>2021-12-05T10:34:09Z</date>
     <groups>
         <group>
             <name>Discovered hosts</name>
@@ -1312,6 +1312,43 @@ You will see &quot;Token ID&quot; (example - `root@pam!monitoring`) and &quot;Se
                             </master_item>
                         </item_prototype>
                         <item_prototype>
+                            <name>PVE Node {#NODE} updated packages</name>
+                            <type>HTTP_AGENT</type>
+                            <key>pve.nodes.update[{#NODE}]</key>
+                            <history>1d</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <description>JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/apt/update` HTTP Query</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.data</params>
+                                </step>
+                            </preprocessing>
+                            <timeout>10s</timeout>
+                            <url>https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/apt/update</url>
+                            <headers>
+                                <header>
+                                    <name>Authorization</name>
+                                    <value>PVEAPIToken={$PVE_API_TOKEN}</value>
+                                </header>
+                            </headers>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{change()}&lt;&gt;0 and {str([])}&lt;&gt;1</expression>
+                                    <recovery_mode>NONE</recovery_mode>
+                                    <name>PVE Node {#NODE} has updates</name>
+                                    <priority>INFO</priority>
+                                    <description>PVE Node {#NODE} has updates</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
                             <name>PVE Node {#NODE} uptime</name>
                             <type>DEPENDENT</type>
                             <key>pve.nodes.uptime[{#NODE}]</key>
@@ -1465,7 +1502,7 @@ You will see &quot;Token ID&quot; (example - `root@pam!monitoring`) and &quot;Se
                         </lld_macro_path>
                         <lld_macro_path>
                             <lld_macro>{#TYPE}</lld_macro>
-                            <path>$['node']</path>
+                            <path>$.['node']</path>
                         </lld_macro_path>
                     </lld_macro_paths>
                 </discovery_rule>
@@ -1572,7 +1609,7 @@ You will see &quot;Token ID&quot; (example - `root@pam!monitoring`) and &quot;Se
                             <key>pve.storage.pused[{#NODE}, {#NAME}]</key>
                             <value_type>FLOAT</value_type>
                             <units>%</units>
-                            <params>last(pve.storage.used[{#NODE}, {#NAME}])/last(pve.storage.total[{#NODE}, {#NAME}])</params>
+                            <params>last(pve.storage.used[{#NODE},{#NAME}])/last(pve.storage.total[{#NODE},{#NAME}])</params>
                             <description>Used storage size in %</description>
                             <applications>
                                 <application>

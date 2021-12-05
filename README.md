@@ -108,25 +108,26 @@ Filter `pve.cluster.status` and creates items, triggers and graphs
 
 #### Node items
 
-| Item                              | Description                                                                                            | Example                      |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------- |
-| PVE Node {#NODE} status           | JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/status/` HTTP Query |                              |
-| PVE Node {#NODE} memory free      | Free RAM in bytes                                                                                      | 30.24 Gb                     |
-| PVE Node {#NODE} memory size      | Total RAM size in bytes                                                                                | 64 Gb                        |
-| PVE Node {#NODE} memory used      | Used RAM in bytes                                                                                      | 33.76 Gb                     |
-| PVE Node {#NODE} memory used in % | Used RAM in %                                                                                          | 15 %                         |
-| PVE Node {#NODE} pveversion       | PVE Version on node                                                                                    | `pve-manager/7.1-5/6fe299a0` |
-| PVE Node {#NODE} rootfs available | Available size in `/` in bytes                                                                         | 13.46 Gb                     |
-| PVE Node {#NODE} rootfs free      | Free size in `/` in bytes                                                                              | 14.55 Gb                     |
-| PVE Node {#NODE} rootfs size      | Total size in `/` in bytes                                                                             | 20.99 Gb                     |
-| PVE Node {#NODE} rootfs used      | Used size in `/` in bytes                                                                              | 6.43 Gb                      |
-| PVE Node {#NODE} rootfs used in % | Used size in `/` in %                                                                                  | 80 %                         |
-| PVE Node {#NODE} swap free        | Free SWAP size in bytes                                                                                | 462.49 Mb                    |
-| PVE Node {#NODE} swap size        | Total SWAP size in bytes                                                                               | 2.15 Gb                      |
-| PVE Node {#NODE} swap used        | Used SWAP size in bytes                                                                                | 1.68 Gb                      |
-| PVE Node {#NODE} swap used in %   | Used SWAP size in %                                                                                    | 80 %                         |
-| PVE Node {#NODE} uptime           | Node uptime in seconds                                                                                 | 12d 13h 30m                  |
-| PVE Node {#NODE} CPU usage in %   | Node CPU usage in %                                                                                    | 15.252 %                     |
+| Item                              | Description                                                                                               | Example                      |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| PVE Node {#NODE} status           | JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/status/` HTTP Query    |                              |
+| PVE Node {#NODE} memory free      | Free RAM in bytes                                                                                         | 30.24 Gb                     |
+| PVE Node {#NODE} memory size      | Total RAM size in bytes                                                                                   | 64 Gb                        |
+| PVE Node {#NODE} memory used      | Used RAM in bytes                                                                                         | 33.76 Gb                     |
+| PVE Node {#NODE} memory used in % | Used RAM in %                                                                                             | 15 %                         |
+| PVE Node {#NODE} pveversion       | PVE Version on node                                                                                       | `pve-manager/7.1-5/6fe299a0` |
+| PVE Node {#NODE} rootfs available | Available size in `/` in bytes                                                                            | 13.46 Gb                     |
+| PVE Node {#NODE} rootfs free      | Free size in `/` in bytes                                                                                 | 14.55 Gb                     |
+| PVE Node {#NODE} rootfs size      | Total size in `/` in bytes                                                                                | 20.99 Gb                     |
+| PVE Node {#NODE} rootfs used      | Used size in `/` in bytes                                                                                 | 6.43 Gb                      |
+| PVE Node {#NODE} rootfs used in % | Used size in `/` in %                                                                                     | 80 %                         |
+| PVE Node {#NODE} swap free        | Free SWAP size in bytes                                                                                   | 462.49 Mb                    |
+| PVE Node {#NODE} swap size        | Total SWAP size in bytes                                                                                  | 2.15 Gb                      |
+| PVE Node {#NODE} swap used        | Used SWAP size in bytes                                                                                   | 1.68 Gb                      |
+| PVE Node {#NODE} swap used in %   | Used SWAP size in %                                                                                       | 80 %                         |
+| PVE Node {#NODE} uptime           | Node uptime in seconds                                                                                    | 12d 13h 30m                  |
+| PVE Node {#NODE} CPU usage in %   | Node CPU usage in %                                                                                       | 15.252 %                     |
+| PVE Node {#NODE} updated packages | JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/apt/update` HTTP Query |                              |
 
 #### Node triggers
 
@@ -142,6 +143,7 @@ Filter `pve.cluster.status` and creates items, triggers and graphs
 | PVE Node {#NODE} rootfs usage > 80%     | Warning     | Node rootfs usage > 80%                           |
 | PVE Node {#NODE} rootfs usage > 80%     | Warning     | Node rootfs usage > 80%                           |
 | PVE Node {#NODE} CPU usage > 80%        | High        | Node CPU usage > 80%                              |
+| PVE Node {#NODE} has updates            | Information | PVE Node {#NODE} has updates                      |
 
 #### Node graphs
 
