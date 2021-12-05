@@ -31,11 +31,13 @@
 
 Monitors PVE VMs and nodes by PVE HTTP API
 
-Tested on Zabbix 5.0.18 and PVE 7.1
+XML tested on Zabbix 5.0.18 and PVE 7.1
+YAML tested on Zabbix 5.4.7 and PVE 7.1
 
 ## Todos
 
-- [ ] Port to Zabbix 5.0
+- [x] Port to Zabbix 5.0
+- [x] Port to Zabbix 5.4
 - [ ] Add update monitoring
 - [ ] Add PBS monitoring (maybe...)
 
@@ -50,7 +52,7 @@ Tested on Zabbix 5.0.18 and PVE 7.1
 
 You will see "Token ID" (example - `root@pam!monitoring`) and "Secret" (some UUID). Save "Secret" value, because you can't display it again!
 
-- Import template into Zabbix
+- Import template into Zabbix (XML for Zabbix < 5.4, YAML for Zabbix 5.4+)
 - Attach template to any server you want, and fill macroses (described below)
 
 ## Macroses
