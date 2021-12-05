@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.0</version>
-    <date>2021-12-04T20:56:59Z</date>
+    <date>2021-12-05T08:53:37Z</date>
     <groups>
         <group>
             <name>Discovered hosts</name>
@@ -875,6 +875,588 @@ You will see &quot;Token ID&quot; (example - `root@pam!monitoring`) and &quot;Se
                         <lld_macro_path>
                             <lld_macro>{#VMID}</lld_macro>
                             <path>$.['vmid']</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>PVE API Resources - node</name>
+                    <type>DEPENDENT</type>
+                    <key>pve.nodes</key>
+                    <delay>0</delay>
+                    <filter>
+                        <conditions>
+                            <condition>
+                                <macro>{#TYPE}</macro>
+                                <value>^node$</value>
+                                <formulaid>A</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <description>Filter pve.cluster.status and creates items, triggers and graphs</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} CPU usage in %</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.nodes.cpu[{#NODE}]</key>
+                            <delay>0</delay>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <description>Node CPU usage in %</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.cpu</params>
+                                </step>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>100</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.nodes[{#NODE}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;80</expression>
+                                    <name>PVE Node {#NODE} CPU usage &gt; 80%</name>
+                                    <priority>HIGH</priority>
+                                    <description>Node CPU usage &gt; 80%</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} memory free</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.nodes.memory.free[{#NODE}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Free RAM in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.memory.free</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.nodes[{#NODE}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} memory used in %</name>
+                            <type>CALCULATED</type>
+                            <key>pve.nodes.memory.pused[{#NODE}]</key>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <params>last(pve.nodes.memory.used[{#NODE}])/last(pve.nodes.memory.total[{#NODE}])</params>
+                            <description>Used RAM in %</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>100</params>
+                                </step>
+                            </preprocessing>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;80</expression>
+                                    <name>PVE Node {#NODE} memory usage &gt; 80%</name>
+                                    <priority>WARNING</priority>
+                                    <description>Node RAM usage &gt; 80%</description>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>PVE Node {#NODE} memory usage &gt; 90%</name>
+                                            <expression>{Proxmox VE by HTTP:pve.nodes.memory.pused[{#NODE}].last()}&gt;90</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;90</expression>
+                                    <name>PVE Node {#NODE} memory usage &gt; 90%</name>
+                                    <priority>HIGH</priority>
+                                    <description>Node RAM usage &gt; 90%</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} memory size</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.nodes.memory.total[{#NODE}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Total RAM size in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.memory.total</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.nodes[{#NODE}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} memory used</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.nodes.memory.used[{#NODE}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Used RAM in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.memory.used</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.nodes[{#NODE}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} pveversion</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.nodes.pveversion[{#NODE}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <description>PVE Version on node</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.pveversion</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.nodes[{#NODE}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{change()}&lt;&gt;0</expression>
+                                    <recovery_mode>NONE</recovery_mode>
+                                    <name>PVE Node {#NODE} pve version changed</name>
+                                    <priority>INFO</priority>
+                                    <description>pveversion was changed since last check</description>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} rootfs available</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.nodes.rootfs.avail[{#NODE}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Available size in `/` in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.rootfs.avail</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.nodes[{#NODE}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} rootfs free</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.nodes.rootfs.free[{#NODE}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Free size in `/` in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.rootfs.free</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.nodes[{#NODE}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} rootfs used in %</name>
+                            <type>CALCULATED</type>
+                            <key>pve.nodes.rootfs.pused[{#NODE}]</key>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <params>last(pve.nodes.rootfs.used[{#NODE}])/last(pve.nodes.rootfs.total[{#NODE}])</params>
+                            <description>Used size in `/` in %</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>100</params>
+                                </step>
+                            </preprocessing>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;80</expression>
+                                    <name>PVE Node {#NODE} rootfs usage &gt; 80%</name>
+                                    <priority>WARNING</priority>
+                                    <description>Node rootfs usage &gt; 80%</description>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>PVE Node {#NODE} rootfs usage &gt; 90%</name>
+                                            <expression>{Proxmox VE by HTTP:pve.nodes.rootfs.pused[{#NODE}].last()}&gt;90</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;90</expression>
+                                    <name>PVE Node {#NODE} rootfs usage &gt; 90%</name>
+                                    <priority>HIGH</priority>
+                                    <description>Node rootfs usage &gt; 90%</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} rootfs size</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.nodes.rootfs.total[{#NODE}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Total size in `/` in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.rootfs.total</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.nodes[{#NODE}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} rootfs used</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.nodes.rootfs.used[{#NODE}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Used size in `/` in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.rootfs.used</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.nodes[{#NODE}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} swap free</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.nodes.swap.free[{#NODE}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Free SWAP size in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.swap.free</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.nodes[{#NODE}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} swap used in %</name>
+                            <type>CALCULATED</type>
+                            <key>pve.nodes.swap.pused[{#NODE}]</key>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <params>last(pve.nodes.swap.used[{#NODE}])/last(pve.nodes.swap.total[{#NODE}])</params>
+                            <description>Used SWAP size in %</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>100</params>
+                                </step>
+                            </preprocessing>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;80</expression>
+                                    <name>PVE Node {#NODE} swap usage &gt; 80%</name>
+                                    <priority>WARNING</priority>
+                                    <description>Node SWAP usage &gt; 80%</description>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>PVE Node {#NODE} swap usage &gt; 90%</name>
+                                            <expression>{Proxmox VE by HTTP:pve.nodes.swap.pused[{#NODE}].last()}&gt;90</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;90</expression>
+                                    <name>PVE Node {#NODE} swap usage &gt; 90%</name>
+                                    <priority>HIGH</priority>
+                                    <description>Node SWAP usage &gt; 90%</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} swap size</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.nodes.swap.total[{#NODE}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Total SWAP size in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.swap.total</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.nodes[{#NODE}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} swap used</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.nodes.swap.used[{#NODE}]</key>
+                            <delay>0</delay>
+                            <units>b</units>
+                            <description>Used SWAP size in bytes</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.swap.used</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.nodes[{#NODE}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} uptime</name>
+                            <type>DEPENDENT</type>
+                            <key>pve.nodes.uptime[{#NODE}]</key>
+                            <delay>0</delay>
+                            <units>s</units>
+                            <description>Node uptime in seconds</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.uptime</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>pve.nodes[{#NODE}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&lt;600</expression>
+                                    <name>PVE Node {#NODE} uptime lesser than 10m</name>
+                                    <priority>WARNING</priority>
+                                    <description>Node has been restarted and node uptime is &lt; 600s</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PVE Node {#NODE} status</name>
+                            <type>HTTP_AGENT</type>
+                            <key>pve.nodes[{#NODE}]</key>
+                            <history>1d</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <description>JSON Response for `https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/status/` HTTP Query</description>
+                            <applications>
+                                <application>
+                                    <name>PVE Node</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.data</params>
+                                </step>
+                            </preprocessing>
+                            <timeout>10s</timeout>
+                            <url>https://{$PVE_API_HOST}:{$PVE_API_PORT}/api2/json/nodes/{#NODE}/status/</url>
+                            <headers>
+                                <header>
+                                    <name>Authorization</name>
+                                    <value>PVEAPIToken={$PVE_API_TOKEN}</value>
+                                </header>
+                            </headers>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>PVE Node {#NODE} CPU</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.nodes.cpu[{#NODE}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                        <graph_prototype>
+                            <name>PVE Node {#NODE} memory</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.nodes.memory.total[{#NODE}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>FILLED_REGION</drawtype>
+                                    <color>F63100</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.nodes.memory.used[{#NODE}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                        <graph_prototype>
+                            <name>PVE Node {#NODE} rootfs</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.nodes.rootfs.total[{#NODE}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>FILLED_REGION</drawtype>
+                                    <color>F63100</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.nodes.rootfs.used[{#NODE}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                        <graph_prototype>
+                            <name>PVE Node {#NODE} swap</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.nodes.swap.total[{#NODE}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>FILLED_REGION</drawtype>
+                                    <color>F63100</color>
+                                    <item>
+                                        <host>Proxmox VE by HTTP</host>
+                                        <key>pve.nodes.swap.used[{#NODE}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                    <master_item>
+                        <key>pve.cluster.status</key>
+                    </master_item>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#IP}</lld_macro>
+                            <path>$.['ip']</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#NODE}</lld_macro>
+                            <path>$.['name']</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#TYPE}</lld_macro>
+                            <path>$['node']</path>
                         </lld_macro_path>
                     </lld_macro_paths>
                 </discovery_rule>
