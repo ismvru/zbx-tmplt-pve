@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.0</version>
-    <date>2021-12-05T10:34:09Z</date>
+    <date>2021-12-05T10:45:48Z</date>
     <groups>
         <group>
             <name>Discovered hosts</name>
@@ -1502,7 +1502,7 @@ You will see &quot;Token ID&quot; (example - `root@pam!monitoring`) and &quot;Se
                         </lld_macro_path>
                         <lld_macro_path>
                             <lld_macro>{#TYPE}</lld_macro>
-                            <path>$.['node']</path>
+                            <path>$.['type']</path>
                         </lld_macro_path>
                     </lld_macro_paths>
                 </discovery_rule>
