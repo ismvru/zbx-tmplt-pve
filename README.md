@@ -57,11 +57,13 @@ You will see "Token ID" (example - `root@pam!monitoring`) and "Secret" (some UUI
 
 ## Macroses
 
-| Macro              | Description        | Example                                                    |
-| ------------------ | ------------------ | ---------------------------------------------------------- |
-| `{$PVE_API_HOST}`  | PVE web UI address | `pve.example.org`                                          |
-| `{$PVE_API_PORT}`  | PVE web UI Port    | `8006`                                                     |
-| `{$PVE_API_TOKEN}` | PVE API Token      | `root@pam!monitoring=69ab8098-f2aa-455c-add3-e387aef0a47e` |
+| Macro                   | Description                             | Example                                                    |
+| ----------------------- | --------------------------------------- | ---------------------------------------------------------- |
+| `{$PVE_API_HOST}`       | PVE web UI address                      | `pve.example.org`                                          |
+| `{$PVE_API_PORT}`       | PVE web UI Port                         | `8006`                                                     |
+| `{$PVE_API_TOKEN}`      | PVE API Token                           | `root@pam!monitoring=69ab8098-f2aa-455c-add3-e387aef0a47e` |
+| `{$PVE_IGNORE_ID}`      | Ignore VMs with this IDs. Regexp.       | `^(100\|90[0-9])$`                                         |
+| `{$PVE_IGNORE_STORAGE}` | Ignore storages with this name. Regexp. | `^z.*$`                                                    |
 
 ## Items
 

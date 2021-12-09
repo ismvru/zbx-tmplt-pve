@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.0</version>
-    <date>2021-12-05T10:45:48Z</date>
+    <date>2021-12-09T16:54:28Z</date>
     <groups>
         <group>
             <name>Discovered hosts</name>
@@ -371,11 +371,18 @@ You will see &quot;Token ID&quot; (example - `root@pam!monitoring`) and &quot;Se
                     <key>pve.ct</key>
                     <delay>0</delay>
                     <filter>
+                        <evaltype>AND</evaltype>
                         <conditions>
                             <condition>
                                 <macro>{#TYPE}</macro>
                                 <value>^lxc$</value>
                                 <formulaid>A</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#VMID}</macro>
+                                <value>{$PVE_IGNORE_ID}</value>
+                                <operator>NOT_MATCHES_REGEX</operator>
+                                <formulaid>B</formulaid>
                             </condition>
                         </conditions>
                     </filter>
@@ -1512,10 +1519,17 @@ You will see &quot;Token ID&quot; (example - `root@pam!monitoring`) and &quot;Se
                     <key>pve.storage</key>
                     <delay>0</delay>
                     <filter>
+                        <evaltype>AND</evaltype>
                         <conditions>
                             <condition>
                                 <macro>{#TYPE}</macro>
                                 <value>^storage$</value>
+                                <formulaid>B</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#NAME}</macro>
+                                <value>{$PVE_IGNORE_STORAGE}</value>
+                                <operator>NOT_MATCHES_REGEX</operator>
                                 <formulaid>A</formulaid>
                             </condition>
                         </conditions>
@@ -1764,11 +1778,18 @@ You will see &quot;Token ID&quot; (example - `root@pam!monitoring`) and &quot;Se
                     <key>pve.vm</key>
                     <delay>0</delay>
                     <filter>
+                        <evaltype>AND</evaltype>
                         <conditions>
                             <condition>
                                 <macro>{#TYPE}</macro>
                                 <value>^qemu$</value>
                                 <formulaid>A</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#VMID}</macro>
+                                <value>{$PVE_IGNORE_ID}</value>
+                                <operator>NOT_MATCHES_REGEX</operator>
+                                <formulaid>B</formulaid>
                             </condition>
                         </conditions>
                     </filter>
@@ -1978,6 +1999,14 @@ You will see &quot;Token ID&quot; (example - `root@pam!monitoring`) and &quot;Se
                     <macro>{$PVE_API_TOKEN}</macro>
                     <type>SECRET_TEXT</type>
                     <description>PVE API Token. Example: root@pam!monitoring=69ab8098-f2aa-455c-add3-e387aef0a47e</description>
+                </macro>
+                <macro>
+                    <macro>{$PVE_IGNORE_ID}</macro>
+                    <description>Ignore VMs with this IDs. Regexp.</description>
+                </macro>
+                <macro>
+                    <macro>{$PVE_IGNORE_STORAGE}</macro>
+                    <description>Ignore storages with this name. Regexp.</description>
                 </macro>
             </macros>
         </template>
