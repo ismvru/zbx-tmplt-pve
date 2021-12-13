@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-12-09T16:54:40Z'
+  date: '2021-12-13T09:11:30Z'
   groups:
     -
       uuid: f2481361f99448eea617b7b1d4765566
@@ -258,7 +258,6 @@ zabbix_export:
           key: pve.ct
           delay: '0'
           filter:
-            evaltype: AND
             conditions:
               -
                 macro: '{#TYPE}'
@@ -269,6 +268,10 @@ zabbix_export:
                 value: '{$PVE_IGNORE_ID}'
                 operator: NOT_MATCHES_REGEX
                 formulaid: B
+              -
+                macro: '{#VMID}'
+                value: '{$PVE_FORCE_ID}'
+                formulaid: C
           description: 'Filter pve.cluster.resources and creates items, triggers and graphs'
           item_prototypes:
             -
@@ -1076,16 +1079,19 @@ zabbix_export:
           key: pve.storage
           delay: '0'
           filter:
-            evaltype: AND
             conditions:
               -
                 macro: '{#TYPE}'
                 value: ^storage$
-                formulaid: B
+                formulaid: C
               -
                 macro: '{#NAME}'
                 value: '{$PVE_IGNORE_STORAGE}'
                 operator: NOT_MATCHES_REGEX
+                formulaid: B
+              -
+                macro: '{#NAME}'
+                value: '{$PVE_FORCE_STORAGE}'
                 formulaid: A
           description: 'Filter pve.cluster.resources and creates items, triggers and graphs'
           item_prototypes:
@@ -1266,7 +1272,6 @@ zabbix_export:
           key: pve.vm
           delay: '0'
           filter:
-            evaltype: AND
             conditions:
               -
                 macro: '{#TYPE}'
@@ -1277,6 +1282,10 @@ zabbix_export:
                 value: '{$PVE_IGNORE_ID}'
                 operator: NOT_MATCHES_REGEX
                 formulaid: B
+              -
+                macro: '{#VMID}'
+                value: '{$PVE_FORCE_ID}'
+                formulaid: C
           description: 'Filter pve.cluster.resources and creates items, triggers and graphs'
           item_prototypes:
             -
@@ -1430,6 +1439,12 @@ zabbix_export:
           macro: '{$PVE_API_TOKEN}'
           type: SECRET_TEXT
           description: 'PVE API Token. Example: root@pam!monitoring=69ab8098-f2aa-455c-add3-e387aef0a47e'
+        -
+          macro: '{$PVE_FORCE_ID}'
+          description: 'Force monitor VMs with this IDs. Regexp.'
+        -
+          macro: '{$PVE_FORCE_STORAGE}'
+          description: 'Force monitor storages with this name. Regexp.'
         -
           macro: '{$PVE_IGNORE_ID}'
           description: 'Ignore VMs with this IDs. Regexp.'
