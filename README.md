@@ -1,5 +1,9 @@
 # Proxmox VE by HTTP
 
+**Depricated**
+
+The development of this template is no longer ongoing after the release of the [official template](https://www.zabbix.com/ru/integrations/proxmox#proxmox) for Proxmox by the Zabbix team
+
 - [Proxmox VE by HTTP](#proxmox-ve-by-http)
   - [Todos](#todos)
   - [Usage](#usage)
