@@ -1,3 +1,5 @@
+# Copyright (C) 2022 Mikhail Isaev <admin@ismv.ru>
+# Copyright (C) 2022 Andrey Gerasimov <esrusia@gmail.com>
 zabbix_export:
   version: '5.4'
   date: '2021-12-13T09:11:30Z'
@@ -18,27 +20,27 @@ zabbix_export:
       name: 'Proxmox VE by HTTP'
       description: |
         # Proxmox VE by HTTP
-        
+
         Monitors PVE VMs and nodes by PVE HTTP API
-        
+
         Tested on Zabbix 5.4.7 and PVE 7.1
-        
+
         ## Usage
-        
+
         - Go to PVE WEB UI -> Datacenter -> Api Tokens
         - Click "Add"
         - Select User (usualy - `root@pam`)
         - Enter Token ID (for example - `monitoring`)
         - **Uncheck "Privelege separation"**
         - Click "Add"
-        
+
         You will see "Token ID" (example - `root@pam!monitoring`) and "Secret" (some UUID). Save "Secret" value, because you can't display it again!
-        
+
         - Import template into Zabbix
         - Attach template to any server you want, and fill macroses (described below)
-        
+
         ## Macroses
-        
+
         | Macro              | Description        | Example                                                    |
         | ------------------ | ------------------ | ---------------------------------------------------------- |
         | `{$PVE_API_HOST}`  | PVE web UI address | `pve.example.org`                                          |
